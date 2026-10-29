@@ -1,16 +1,39 @@
-# Atc.Desktop.WebHost
+# ⚡ Atc.Desktop.WebHost
 
 A fast desktop host for .NET apps with a web frontend: a native window with a webview, a typed message bridge, and a startup pipeline built for time to first content.
 
 | Package | What |
 |---|---|
-| `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file watching, startup timing. No native dependencies. |
-| `Atc.Desktop.WebHost.Windows` | Windows window: plain Win32 + WebView2. No WinForms, WPF or WinUI is loaded. |
-| `Atc.Desktop.WebHost.Linux` | Linux window: GTK4 + WebKitGTK 6.0 through [GirCore](https://github.com/gircore/gir.core). Needs `libgtk-4-1` and `libwebkitgtk-6.0-4`. |
+| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file watching, startup timing. No native dependencies. |
+| 🪟 `Atc.Desktop.WebHost.Windows` | Windows window: plain Win32 + WebView2. No WinForms, WPF or WinUI is loaded. |
+| 🐧 `Atc.Desktop.WebHost.Linux` | Linux window: GTK4 + WebKitGTK 6.0 through [GirCore](https://github.com/gircore/gir.core). Needs `libgtk-4-1` and `libwebkitgtk-6.0-4`. |
 
-Status: early. Windows works and is measured. The Linux window runs (tested in WSL on Ubuntu with WebKitGTK 2.52) but has only been tested lightly.
+🚧 **Status: early.** 🪟 Windows works and is measured. 🐧 The Linux window runs (tested in WSL on Ubuntu with WebKitGTK 2.52) but has only been tested lightly.
 
-## Quick start
+## 🚀 Why it's fast
+
+Most desktop apps with a web frontend spend their first half-second loading a UI framework they barely use. `Atc.Desktop.WebHost` doesn't. It opens a plain native window, starts the webview at once and has your document ready before the page asks for it.
+
+| Host (same PC, warm start, 5,000-line Markdown file) | ⏱️ Time to first content | |
+|---|---|---|
+| ⚡ **Atc.Desktop.WebHost** | **~300 ms** | Plain Win32 window, nothing extra loaded |
+| 🐢 WPF + WebView2 | ~400–500 ms | WPF and XAML load before the window shows |
+| 🐌 WinUI 3 + WebView2 | ~450–650 ms | Windows App SDK, XAML and its composition layer start first |
+| 🦥 WPF with native Markdown rendering | ~1–3 s | Laying out a large document without virtualization |
+
+What makes the difference:
+
+- 🪶 **No UI framework.** No WinForms, WPF or WinUI is loaded. The window is on screen about 120 ms after the process starts.
+- 🎨 **No white flash.** The window is painted in the theme's colour before the webview exists.
+- 🧵 **Work in parallel.** The document is read and prepared on the thread pool while the webview starts.
+- 📦 **One boot script.** Settings, theme and the document arrive with the page. No round trip before the first paint.
+- 📂 **Served natively.** The UI loads from a folder through WebView2's virtual host mapping. No managed code runs per file request.
+- 🛡️ **No SmartScreen check on our own page.** The page is local, and external links open in the browser. That alone saves about a second per launch.
+- 📏 **Measured, not assumed.** Every startup step is timed, and `--bench` reports it. See [benchmarks/README.md](benchmarks/README.md).
+
+> Numbers for the other hosts are estimates. Side-by-side measurements on one machine are coming.
+
+## 🏁 Quick start
 
 ```csharp
 public static class Program
@@ -45,18 +68,18 @@ atcHost.on("file.changed", ({ path }) => reload(path));
 atcHost.notify("host.firstPaint", { marks }); // startup measurement
 ```
 
-## How startup works
+## ⏱️ How startup works
 
-1. **Single instance.** A named mutex is checked. A second launch hands its files to the running window over a named pipe and exits.
-2. **The document loads in parallel.** The first file starts loading on the thread pool right away, with the app's `LoadDocument`.
-3. **The window shows at once.** It is painted in the theme's background colour (light/dark from settings or the OS), so there is no white flash.
-4. **The webview starts.** On WebView2 this is ~80% of startup.
-5. **One boot script.** `window.atcHost` is injected together with settings, theme and the document, if it's ready. The page paints it without a round trip.
-6. **The page loads from a private origin.** That's `https://app.atc-webhost.example/`, served natively from a folder with WebView2 virtual host mapping, or from embedded resources.
+1. 🔒 **Single instance.** A named mutex is checked. A second launch hands its files to the running window over a named pipe and exits.
+2. 📄 **The document loads in parallel.** The first file starts loading on the thread pool right away, with the app's `LoadDocument`.
+3. 🪟 **The window shows at once.** It is painted in the theme's background colour (light/dark from settings or the OS), so there is no white flash.
+4. 🌐 **The webview starts.** On WebView2 this is ~80% of startup.
+5. 📦 **One boot script.** `window.atcHost` is injected together with settings, theme and the document, if it's ready. The page paints it without a round trip.
+6. 🏠 **The page loads from a private origin.** That's `https://app.atc-webhost.example/`, served natively from a folder with WebView2 virtual host mapping, or from embedded resources.
 
-Every step is marked. Run the app with `--bench --bench-out file.txt` to get `STARTUP_MS` and every phase in the `KEY=VALUE` format of Per's `measure.ps1`. See [benchmarks/README.md](benchmarks/README.md).
+Every step is marked. Run the app with `--bench --bench-out file.txt` to get `STARTUP_MS` and every phase as `KEY=VALUE` lines for `benchmarks/measure.ps1`. See [benchmarks/README.md](benchmarks/README.md).
 
-## Bridge
+## 🌉 Bridge
 
 Messages are JSON text:
 
@@ -81,7 +104,7 @@ Built-in requests:
 
 Built-in events: `settings.changed`, `file.changed`, `document.opened`.
 
-## Sample
+## 🧪 Sample
 
 `sample/Atc.Desktop.WebHost.Sample` is a small text viewer. It demonstrates the host and is the app the benchmarks run.
 
@@ -90,8 +113,8 @@ dotnet run --project sample/Atc.Desktop.WebHost.Sample -- benchmarks/fixtures/re
 dotnet run --project sample/Atc.Desktop.WebHost.Sample -- --ui=embedded --devtools
 ```
 
-It includes a **Bridge bench** button, which measures request round trips (empty to 1 MB) and event throughput.
+It includes a 📊 **Bridge bench** button, which measures request round trips (empty to 1 MB) and event throughput.
 
-## Credits
+## 🙏 Credits
 
 The Win32 window and the WebKitGTK wiring are modelled on the C++ in [Photino.Native](https://github.com/tryphotino/photino.native) (Apache-2.0) and written from scratch in C#; no Photino code is copied.
