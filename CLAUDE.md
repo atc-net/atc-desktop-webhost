@@ -1,0 +1,101 @@
+# CLAUDE.md
+
+Guidance for Claude Code (and other agents) working in this repo.
+
+## What this is
+
+`Atc.Desktop.WebHost` is a fast desktop host for .NET apps with a web (TypeScript) frontend: a native window with a webview, a typed JSON message bridge, and a startup pipeline tuned for **time to first content**. It is the shared host for the ATC viewer apps (Markdown viewer first). The host knows nothing about file formats: each app passes a `LoadDocument(path)` function and its own bridge handlers.
+
+Status: early. Windows works and is measured (~570–640 ms to first paint, 5k-line file, JIT build). The Linux window compiles but **has never run**.
+
+## Layout
+
+| Path | What |
+|---|---|
+| `src/Atc.Desktop.WebHost` | Core. No native dependencies, `IsAotCompatible`. Bridge, startup pipeline, single instance, settings, file watching, startup clock, bench output |
+| `src/Atc.Desktop.WebHost.Windows` | Plain Win32 window + WebView2 (no WinForms/WPF/WinUI). Unsafe code and P/Invoke in `Interop/` |
+| `src/Atc.Desktop.WebHost.Linux` | GTK4 + WebKitGTK 6.0 through GirCore (`GirCore.WebKit-6.0` preview) |
+| `sample/Atc.Desktop.WebHost.Sample` | Demo text viewer (`atc-webhost-sample`). It is also the app the benchmarks run |
+| `test/Atc.Desktop.WebHost.Tests` | Unit tests for the core only (xunit v3, Microsoft Testing Platform) |
+| `benchmarks/` | `measure.ps1` (adapted from Per's), `New-Fixtures.ps1`, `README.md` with results. `benchmarks/results/` is git-ignored |
+
+Solution file: `Atc.Desktop.WebHost.slnx`. Target: `net10.0`, C# 14.
+
+## Commands
+
+```shell
+dotnet build Atc.Desktop.WebHost.slnx -c Release          # warnings are errors in Release
+dotnet test --project test/Atc.Desktop.WebHost.Tests/Atc.Desktop.WebHost.Tests.csproj -c Release
+dotnet run --project sample/Atc.Desktop.WebHost.Sample -- benchmarks/fixtures/readme-5k.md
+dotnet run --project sample/Atc.Desktop.WebHost.Sample -- --ui=embedded --devtools
+```
+
+`global.json` selects the Microsoft Testing Platform, so `dotnet test` takes `--project`, not a positional path.
+
+Benchmark (Windows, PowerShell):
+
+```shell
+pwsh benchmarks/measure.ps1 -Exe sample/Atc.Desktop.WebHost.Sample/bin/Release/net10.0/atc-webhost-sample.exe `
+    -Fixture benchmarks/fixtures/readme-5k.md -Label folder -Runs 15
+```
+
+The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--devtools`. The sample adds `--ui=folder|embedded` and `--browser-args=...`.
+
+## Architecture
+
+**Startup pipeline** (`WebHostApplication.Run`): single-instance check (named mutex, files handed over a named pipe) → first document starts loading on the thread pool → native window shows at once in the theme background colour → webview starts → boot script injected → page loads from the private origin `https://app.atc-webhost.example/`. Every step calls `StartupClock.Mark(...)`; `--bench` writes them as `KEY=VALUE` lines and exits after the page's first paint.
+
+**Platform abstraction** (`src/Atc.Desktop.WebHost/Platform`):
+- `IHostPlatform`: creates the window and runs the message loop (blocks).
+- `IHostWindow`: the small set of things the host needs (post message, title, bring to front, close, Open/Save dialogs, process ids). All members run on the UI thread. Keep it small and add members only when an app needs them.
+- `IHostWindowEvents`: callbacks into the host, in startup order, on the UI thread. `WebHostApplication` implements it.
+
+**Bridge** (`Bridge/WebBridge.cs`): JSON text messages.
+- Page → host: `{ kind: "request", id, type, payload }`. A request without an `id` is a notification and gets no response. Cancel with `{ kind: "cancel", id }`.
+- Host → page: `{ kind: "response", id, ok, result | error: { code, message } }` and `{ kind: "event", type, payload }`.
+- Handlers start on the UI thread; move CPU-heavy work to the thread pool.
+- Events are queued until the page sends `host.ready` (done automatically on `DOMContentLoaded`). Responses are never held back.
+- Results are pre-serialized `JsonPayload` values, spliced into messages as-is. Throw `BridgeException(code, message)` for expected errors.
+- Built-in handlers are in `WebHostApplication.Handlers.cs`; their DTOs are in `BuiltInMessages.cs` and `BridgeJsonContext.cs`.
+
+**Page side** (`Hosting/HostScript.cs`): the injected shim defines `window.atcHost` (`platform`, `boot`, `request`, `notify`, `on`, `ready`), the same on WebView2 and WebKitGTK. Pages never touch `window.chrome.webview` or `window.webkit.messageHandlers` directly. If you change the shim or the message shape, keep `@atc-net/viewer-host` (the TS package, in another repo) in mind.
+
+**Folders** (`Hosting/HostPaths.cs`): settings in `%APPDATA%\{Vendor}\{AppId}`, data and the WebView2 profile in `%LOCALAPPDATA%\{Vendor}\{AppId}` (XDG on Linux). A `portable.flag` file next to the exe puts both in `data\` beside it.
+
+## Conventions
+
+- ATC coding rules apply (`.editorconfig` + `Directory.Build.props` per folder, from `atc-coding-rules-updater`). The analyzers are Atc.Analyzer, StyleCop, Meziantou, Sonar and AsyncFixer, with `AnalysisLevel=latest-All`. **Release builds must have 0 warnings.** Don't edit the generated rule files by hand; re-run `atc-coding-rules-updater.ps1` instead.
+- File-scoped namespaces, one type per file, `GlobalUsings.cs` per project (add new `using`s there).
+- Methods with more than one parameter put each parameter on its own line (see the existing code).
+- Expression-bodied members put `=>` on the next line.
+- Trailing commas in multi-line initializers (SA1413 is an error).
+- XML docs on public API. Write short, plain sentences.
+- JSON goes through **source-generated** `System.Text.Json` contexts (`JsonTypeInfo<T>`). No reflection-based serialization in `src/` (keep it trimming/AOT safe).
+- `ConfigureAwait(true)` where code must return to the UI thread (bridge, handlers). `ConfigureAwait(false)` for thread-pool work.
+- The core gives `InternalsVisibleTo` to the tests and both platform projects. Internal is fine for host plumbing.
+- Tests: `[Fact]`, names like `Subject_Expectation` (e.g. `UnknownType_IsAnsweredWithAnError`), one test class per type in a folder that mirrors `src/`, AwesomeAssertions (`.Should()`), NSubstitute, AutoFixture via Atc.Test.
+- The root `Directory.Build.targets` imports the Windows project's `buildTransitive` target. It removes WebView2's WinForms/WPF references (otherwise MSB3277 fails the Release build).
+
+## Things to know
+
+- **Performance is the product.** Before changing anything on the startup path, measure it with `measure.ps1` (warm runs, median; expect ±40 ms noise) and update `benchmarks/README.md`.
+- **SmartScreen is off** (`IsReputationCheckingRequired = false` in `Win32Window.WebView.cs`). It cost about 1 s per launch. This choice is still waiting for Per's OK.
+- **The boot script isn't awaited before `Navigate`** (saves ~30 ms). This relies on WebView2 handling the calls in order, which isn't documented. If `atcHost` is ever missing, await it first.
+- **Open/Save dialogs** run from the window's message loop, not inside a WebView2 event handler, to avoid a hang.
+- **One window per process.** `Win32Window` enforces it.
+- **The Windows window is modelled on Photino.Native's C++, but no code is copied.** Keep it that way (license and credits in the README).
+- **Linux gaps:** links navigate inside the app, the profile folder isn't set, dark theme only through `GTK_THEME`, no process ids, origin `atc-app://app/`.
+- `FileWatchServiceTests.SeveralWrites_AreReportedOnce` depends on timing and may be flaky on slow CI runners.
+- ReadyToRun (`dotnet publish sample/Atc.Desktop.WebHost.Sample -c Release -r win-x64`) gives no measurable startup gain, only a smaller install.
+- WebView2 start varies up to 4× between sessions on the same PC (total ~300 ms vs ~600 ms). Only compare variants measured back to back in the same session.
+
+## Commits
+
+Nothing committed to this repo may refer to plans, issues or `atc-roadmaps`. This covers the commit message (subject and body) and every committed file: code, comments, docs, the README and this file.
+- No IDs for plan tasks, issues, proposals or decisions (anything like `XX-12`, `I-3`, `P-2`).
+- No paths or links to `plans\*`, `issues\*` or `*\atc-roadmaps\*`, and no mention of plan files, phases or items.
+- Describe what the change does on its own terms.
+
+Before committing, search the staged files for IDs like these and for the words roadmap, brainstorm and issues.md.
+
+Per (colleague) owns the Markdown viewer R&D (`atc-soft-markdown-viewer`, branch `feature/init`): the WinUI 3 spike, the original `measure.ps1` and the 469 ms ReadyToRun baseline.
