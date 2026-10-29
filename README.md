@@ -14,24 +14,23 @@ A fast desktop host for .NET apps with a web frontend: a native window with a we
 
 Most desktop apps with a web frontend spend their first half-second loading a UI framework they barely use. `Atc.Desktop.WebHost` doesn't. It opens a plain native window, starts the webview at once and has your document ready before the page asks for it.
 
-| Host (same PC, warm start, 5,000-line Markdown file) | ⏱️ Time to first content | |
+| Host (same PC, warm start) | ⏱️ 1 KB text file | ⏱️ 10 MB text file |
 |---|---|---|
-| ⚡ **Atc.Desktop.WebHost** | **~300 ms** | Plain Win32 window, nothing extra loaded |
-| 🐢 WPF + WebView2 | ~400–500 ms | WPF and XAML load before the window shows |
-| 🐌 WinUI 3 + WebView2 | ~450–650 ms | Windows App SDK, XAML and its composition layer start first |
-| 🦥 WPF with native Markdown rendering | ~1–3 s | Laying out a large document without virtualization |
+| ⚡ **Atc.Desktop.WebHost** | **464 ms** | **1.31 s** |
+| 🐌 WinUI 3 + WebView2 | 609 ms (+31%) | 1.47 s |
+| 🐢 WPF + WebView2 | 852 ms (+84%) | 1.72 s |
+
+Time from process start to the document on screen, median of 20 warm launches. Every host shows the same page with the same file and the same webview settings. The whole lead is won before the webview starts: WinUI 3 spends it on Windows App SDK and XAML start-up, and WPF's WebView2 control waits for the WPF window to render before starting the browser.
 
 What makes the difference:
 
-- 🪶 **No UI framework.** No WinForms, WPF or WinUI is loaded. The window is on screen about 120 ms after the process starts.
+- 🪶 **No UI framework.** No WinForms, WPF or WinUI is loaded. The window exists about 110 ms after the process starts.
 - 🎨 **No white flash.** The window is painted in the theme's colour before the webview exists.
 - 🧵 **Work in parallel.** The document is read and prepared on the thread pool while the webview starts.
 - 📦 **One boot script.** Settings, theme and the document arrive with the page. No round trip before the first paint.
 - 📂 **Served natively.** The UI loads from a folder through WebView2's virtual host mapping. No managed code runs per file request.
 - 🛡️ **No SmartScreen check on our own page.** The page is local, and external links open in the browser. That alone saves about a second per launch.
-- 📏 **Measured, not assumed.** Every startup step is timed, and `--bench` reports it. See [benchmarks/README.md](benchmarks/README.md).
-
-> Numbers for the other hosts are estimates. Side-by-side measurements on one machine are coming.
+- 📏 **Measured, not assumed.** Every startup step is timed, and `--bench` reports it. `benchmarks/Compare-Hosts.ps1` runs the comparison above on your own PC. See [benchmarks/README.md](benchmarks/README.md).
 
 ## 🏁 Quick start
 

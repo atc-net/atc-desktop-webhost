@@ -6,7 +6,7 @@ Guidance for Claude Code (and other agents) working in this repo.
 
 `Atc.Desktop.WebHost` is a fast desktop host for .NET apps with a web (TypeScript) frontend: a native window with a webview, a typed JSON message bridge, and a startup pipeline tuned for **time to first content**. It is the shared host for the ATC viewer apps (Markdown viewer first). The host knows nothing about file formats: each app passes a `LoadDocument(path)` function and its own bridge handlers.
 
-Status: early. Windows works and is measured (~300–640 ms to first paint, 5k-line file, depending on how warm WebView2 is). Linux runs in WSL (Ubuntu, WebKitGTK 2.52): ~820 ms with software rendering. Only startup and bench mode have been exercised there.
+Status: early. Windows works and is measured (first paint ~300–640 ms depending on how warm WebView2 is; in the latest comparison 464 ms for a 1 KB file and 1.3 s for 10 MB). It beats WPF + WebView2 and WinUI 3 + WebView2 on the same PC. Linux runs in WSL (Ubuntu, WebKitGTK 2.52): ~820 ms with software rendering. Only startup and bench mode have been exercised there.
 
 To run on Linux from WSL, build from a clone in the WSL home folder (not `/mnt/d/...`), so Linux and Windows don't share `bin/` and `obj/`. Packages needed: `dotnet-sdk-10.0 libgtk-4-1 libwebkitgtk-6.0-4`.
 
@@ -19,7 +19,8 @@ To run on Linux from WSL, build from a clone in the WSL home folder (not `/mnt/d
 | `src/Atc.Desktop.WebHost.Linux` | GTK4 + WebKitGTK 6.0 through GirCore (`GirCore.WebKit-6.0` preview) |
 | `sample/Atc.Desktop.WebHost.Sample` | Demo text viewer (`atc-webhost-sample`). It is also the app the benchmarks run |
 | `test/Atc.Desktop.WebHost.Tests` | Unit tests for the core only (xunit v3, Microsoft Testing Platform) |
-| `benchmarks/` | `measure.ps1` (adapted from Per's), `New-Fixtures.ps1`, `README.md` with results. `benchmarks/results/` is git-ignored |
+| `benchmarks/` | `measure.ps1` (adapted from Per's), `Compare-Hosts.ps1`, `New-Fixtures.ps1`, `README.md` with results. `benchmarks/results/` and `fixtures/text-10mb.txt` are git-ignored |
+| `benchmarks/hosts` | Comparison hosts (WPF + WebView2, WinUI 3 + WebView2) with their own `Hosts.slnx` and build settings. Not in the main solution or CI. Fairness rules in its README |
 
 Solution file: `Atc.Desktop.WebHost.slnx`. Target: `net10.0`, C# 14.
 
@@ -34,11 +35,12 @@ dotnet run --project sample/Atc.Desktop.WebHost.Sample -- --ui=embedded --devtoo
 
 `global.json` selects the Microsoft Testing Platform, so `dotnet test` takes `--project`, not a positional path.
 
-Benchmark (Windows, PowerShell):
+Benchmark (Windows, PowerShell). Every performance test uses both `text-1kb.txt` and `text-10mb.txt` (random line lengths, made by `New-Fixtures.ps1`):
 
 ```shell
+pwsh benchmarks/Compare-Hosts.ps1      # this host vs WPF and WinUI 3, both files, order alternated over rounds
 pwsh benchmarks/measure.ps1 -Exe sample/Atc.Desktop.WebHost.Sample/bin/Release/net10.0/atc-webhost-sample.exe `
-    -Fixture benchmarks/fixtures/readme-5k.md -Label folder -Runs 15
+    -Fixture benchmarks/fixtures/text-1kb.txt -Label 1kb -Runs 15
 ```
 
 The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--devtools`. The sample adds `--ui=folder|embedded` and `--browser-args=...`.
@@ -80,7 +82,8 @@ The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--de
 
 ## Things to know
 
-- **Performance is the product.** Before changing anything on the startup path, measure it with `measure.ps1` (warm runs, median; expect ±40 ms noise) and update `benchmarks/README.md`.
+- **Performance is the product.** Before changing anything on the startup path, measure it with `measure.ps1` or `Compare-Hosts.ps1` on both text files (warm runs, median; expect ±40 ms noise) and update `benchmarks/README.md`. The README's comparison table is measured; keep it that way.
+- **Comparison hosts must follow the fairness rules** in `benchmarks/hosts/README.md` (same page, clock, webview settings, profile and tuning). Don't optimize them beyond what the framework's template does, and don't hobble them either.
 - **SmartScreen is off** (`IsReputationCheckingRequired = false` in `Win32Window.WebView.cs`). It cost about 1 s per launch. This choice is still waiting for Per's OK.
 - **The boot script isn't awaited before `Navigate`** (saves ~30 ms). This relies on WebView2 handling the calls in order, which isn't documented. If `atcHost` is ever missing, await it first.
 - **Open/Save dialogs** run from the window's message loop, not inside a WebView2 event handler, to avoid a hang.

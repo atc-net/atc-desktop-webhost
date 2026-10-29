@@ -2,15 +2,45 @@
 
 Startup is measured from the moment the OS starts the process to the page's first content paint. That is two animation frames after the document is in the DOM, the same rule the WinUI 3 spike uses.
 
+Every performance test runs with two plain-text files with random line lengths: `text-1kb.txt` (startup with almost nothing to show) and `text-10mb.txt` (startup with a large document). The Markdown-like `readme-*.md` files are still there for older comparisons.
+
 ```shell
-pwsh benchmarks/New-Fixtures.ps1                      # readme-500.md, readme-5k.md, readme-50k.md
+pwsh benchmarks/New-Fixtures.ps1                      # text-1kb.txt, text-10mb.txt (not committed), readme-500/5k/50k.md
+pwsh benchmarks/Compare-Hosts.ps1                     # this host vs WPF and WinUI 3, both text files
 dotnet build sample/Atc.Desktop.WebHost.Sample -c Release
 pwsh benchmarks/measure.ps1 -Exe sample/Atc.Desktop.WebHost.Sample/bin/Release/net10.0/atc-webhost-sample.exe `
-    -Fixture benchmarks/fixtures/readme-5k.md -Label folder -Runs 15
-pwsh benchmarks/measure.ps1 ... -Label embedded -ExtraArgs "--ui=embedded"
+    -Fixture benchmarks/fixtures/text-1kb.txt -Label 1kb -Runs 15
+pwsh benchmarks/measure.ps1 ... -Fixture benchmarks/fixtures/text-10mb.txt -Label 10mb
 ```
 
-`measure.ps1` is adapted from the one in atc-soft-markdown-viewer (`feature/init`). It does one warm-up launch and then reports the median and p90, with every phase median in `benchmarks/results/<label>.json` (not committed).
+`measure.ps1` is adapted from the one in atc-soft-markdown-viewer (`feature/init`). It does one warm-up launch and then reports the median and p90, with every phase median and every run's values in `benchmarks/results/<label>.json` (not committed).
+
+## 🆚 Compared with WPF and WinUI 3 (2026-10-30)
+
+`Compare-Hosts.ps1` with the hosts in [hosts/](hosts/README.md): the same page, file, webview settings and clock in every host. Intel Core Ultra 7 366H laptop, Windows 11, JIT Release builds, 2 rounds × 10 warm runs per host, order reversed in the second round. Times are ms since the process started.
+
+**text-1kb.txt**
+
+| Host | Median | p90 | App code starts | Window created | WebView2 ready | Memory | Build output |
+|---|---|---|---|---|---|---|---|
+| ⚡ **Atc.Desktop.WebHost** | **464 ms** | 498 ms | 54 | 109 | 356 | 161 MB | 36.9 MB |
+| WinUI 3 + WebView2 | 609 ms | 658 ms | 134 | 217 | 496 | 226 MB | 155.2 MB |
+| WPF + WebView2 | 852 ms | 949 ms | 104 | 193 | 752 | 316 MB | 2.3 MB + .NET desktop runtime |
+
+**text-10mb.txt**
+
+| Host | Median | p90 | WebView2 ready | Memory |
+|---|---|---|---|---|
+| ⚡ **Atc.Desktop.WebHost** | **1,310 ms** | 1,447 ms | 366 | 998 MB |
+| WinUI 3 + WebView2 | 1,474 ms | 1,484 ms | 507 | 1,035 MB |
+| WPF + WebView2 | 1,717 ms | 1,799 ms | 755 | 1,101 MB |
+
+What the numbers say:
+
+- 🏁 **The whole lead is won before WebView2 starts.** From navigation to first paint, all three take about the same time. WinUI 3 reaches app code ~80 ms later (Windows App SDK start) and has WebView2 ready ~140 ms later. WPF's WebView2 control only starts the browser once the WPF window has rendered (~490 ms), so its WebView2 is ready ~400 ms later.
+- 📄 **A 10 MB file costs ~900 ms in every host**: ~170 ms to hand the text to the page (the boot script), then ~720 ms for the browser to lay out 10 MB in one `<pre>`. That's page work, not host work. A viewer for large files needs a virtualized view; the host can't fix it.
+- 🧠 **Memory** is mostly the 10 MB text in the page (~1 GB in every host). The host process itself is smallest here.
+- 🎲 **Session drift:** the host's 1 KB median was 464 ms this session vs ~300 ms on 2026-10-29 (see below). Only compare numbers from one session.
 
 ## 🏆 Results
 
@@ -80,6 +110,6 @@ WSL on David's PC: Ubuntu, GTK 4.22, WebKitGTK 2.52, .NET 10.0.5, JIT Release bu
 ## 🔭 Next measurements
 
 - 🎲 **Why WebView2 controller creation varies 4×.** Measure with and without other WebView2 apps running (Teams, Outlook, Widgets), and after a reboot.
-- 🆚 **The WinUI 3 spike on the same PC.** Publish `spikes/SpikeWinUI` and run it with the same script, so both numbers come from one machine.
+- 🆚 **More hosts.** Avalonia (it needs a webview control first) and WPF drawing the text itself, without a webview. Run on more PCs, and with ReadyToRun builds of every host.
 - 🏗️ **Native AOT.** `Microsoft.Web.WebView2.Core` uses built-in COM interop, which AOT doesn't support. That needs a ComWrappers-based binding first. Low priority: ReadyToRun showed the .NET phases aren't JIT-bound.
 - 🎮 **Linux with GPU rendering.** In WSL, add the user to the `video` and `render` groups and measure again. Better still, measure on a real Linux machine. Make `measure.ps1` run under `pwsh` on Linux.
