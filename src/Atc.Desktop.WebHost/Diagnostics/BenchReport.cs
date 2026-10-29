@@ -50,11 +50,10 @@ internal static class BenchReport
     public static IReadOnlyDictionary<string, double> MeasureMemory(
         IReadOnlyList<int> browserProcessIds)
     {
-        const double Mb = 1024.0 * 1024.0;
         using var self = Process.GetCurrentProcess();
         var result = new Dictionary<string, double>(StringComparer.Ordinal)
         {
-            ["Host"] = self.PrivateMemorySize64 / Mb,
+            ["Host"] = PrivateMb(self),
         };
 
         var browser = 0.0;
@@ -63,7 +62,7 @@ internal static class BenchReport
             try
             {
                 using var process = Process.GetProcessById(id);
-                browser += process.PrivateMemorySize64 / Mb;
+                browser += PrivateMb(process);
             }
             catch (ArgumentException)
             {
@@ -77,6 +76,58 @@ internal static class BenchReport
         }
 
         return result;
+    }
+
+    /// <summary>Sums the <c>Private_Clean</c> and <c>Private_Dirty</c> lines of a Linux <c>/proc/&lt;pid&gt;/smaps_rollup</c> file.</summary>
+    /// <param name="smapsRollup">The file content.</param>
+    /// <returns>Private memory in kB.</returns>
+    public static long ParsePrivateKb(string smapsRollup)
+    {
+        ArgumentNullException.ThrowIfNull(smapsRollup);
+
+        var total = 0L;
+        foreach (var line in smapsRollup.Split('\n'))
+        {
+            var trimmed = line.Trim();
+            if (!trimmed.StartsWith("Private_Clean:", StringComparison.Ordinal) &&
+                !trimmed.StartsWith("Private_Dirty:", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var value = trimmed[(trimmed.IndexOf(':', StringComparison.Ordinal) + 1)..]
+                .Replace("kB", string.Empty, StringComparison.Ordinal)
+                .Trim();
+            if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kb))
+            {
+                total += kb;
+            }
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// Private memory in MB. On Linux, <see cref="Process.PrivateMemorySize64"/> is reserved address space
+    /// (tens of GB for a .NET process), so the pages in use are read from <c>/proc</c> instead.
+    /// </summary>
+    private static double PrivateMb(Process process)
+    {
+        const double Mb = 1024.0 * 1024.0;
+        if (OperatingSystem.IsLinux())
+        {
+            try
+            {
+                return ParsePrivateKb(File.ReadAllText($"/proc/{process.Id}/smaps_rollup")) / 1024.0;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Older kernels have no smaps_rollup; fall back to the resident set.
+                return process.WorkingSet64 / Mb;
+            }
+        }
+
+        return process.PrivateMemorySize64 / Mb;
     }
 
     private static void Append(
