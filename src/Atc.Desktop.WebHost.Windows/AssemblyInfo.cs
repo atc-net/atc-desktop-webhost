@@ -1,0 +1,1 @@
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]

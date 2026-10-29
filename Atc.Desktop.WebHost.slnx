@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/sample/">
+    <Project Path="sample/Atc.Desktop.WebHost.Sample/Atc.Desktop.WebHost.Sample.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Atc.Desktop.WebHost.Linux/Atc.Desktop.WebHost.Linux.csproj" />
+    <Project Path="src/Atc.Desktop.WebHost.Windows/Atc.Desktop.WebHost.Windows.csproj" />
+    <Project Path="src/Atc.Desktop.WebHost/Atc.Desktop.WebHost.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Atc.Desktop.WebHost.Tests/Atc.Desktop.WebHost.Tests.csproj" />
+  </Folder>
+</Solution>

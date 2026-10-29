@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>atc-webhost-sample</AssemblyName>
+    <RootNamespace>Atc.Desktop.WebHost.Sample</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Description>Demo and benchmark app for Atc.Desktop.WebHost.</Description>
+  </PropertyGroup>
+
+  <!--
+    Startup tuning. ReadyToRun was measured here with no startup gain, but it halves the install size.
+    The other three are cheap, commonly used and not measured yet:
+      ReadyToRun          precompiled code, so almost nothing is JIT-compiled at startup
+      InvariantGlobalization  no ICU load (the sample needs no culture-specific formatting)
+      UseSystemResourceKeys   no resource lookups for exception messages
+      ConcurrentGC=false  no background GC thread created at startup
+  -->
+  <PropertyGroup>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <SelfContained>false</SelfContained>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Served from disk with WebView2 virtual host mapping (default) ... -->
+    <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- ... or from the assembly (switch: ui=embedded). -->
+    <EmbeddedResource Include="wwwroot\**" LogicalName="wwwroot/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Atc.Desktop.WebHost\Atc.Desktop.WebHost.csproj" />
+    <ProjectReference Include="..\..\src\Atc.Desktop.WebHost.Windows\Atc.Desktop.WebHost.Windows.csproj" />
+    <ProjectReference Include="..\..\src\Atc.Desktop.WebHost.Linux\Atc.Desktop.WebHost.Linux.csproj" />
+  </ItemGroup>
+
+</Project>

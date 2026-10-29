@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+    <PackageId>Atc.Desktop.WebHost</PackageId>
+    <Description>Fast desktop host for TypeScript web frontends: window + webview, typed message bridge, startup pipeline, single instance, settings, file watching and startup benchmarks.</Description>
+    <PackageTags>desktop;webview;webview2;webkitgtk;host</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Atc.Desktop.WebHost.Tests" />
+    <InternalsVisibleTo Include="Atc.Desktop.WebHost.Windows" />
+    <InternalsVisibleTo Include="Atc.Desktop.WebHost.Linux" />
+  </ItemGroup>
+
+</Project>

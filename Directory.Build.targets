@@ -1,0 +1,6 @@
+<Project>
+
+  <!-- Projects in this repo get the same WebView2 trimming that NuGet consumers get from buildTransitive. -->
+  <Import Project="$(MSBuildThisFileDirectory)src\Atc.Desktop.WebHost.Windows\buildTransitive\Atc.Desktop.WebHost.Windows.targets" />
+
+</Project>

@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    The Microsoft.Web.WebView2 package references its WinForms and WPF controls in every .NET project.
+    Atc.Desktop.WebHost.Windows uses only Microsoft.Web.WebView2.Core from a plain Win32 window, so drop the
+    two UI assemblies: fewer files to ship, and no WindowsBase version conflict (MSB3277) on plain net10.0.
+  -->
+  <Target Name="AtcWebHostRemoveWebView2UiAssemblies" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.WinForms' Or '%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

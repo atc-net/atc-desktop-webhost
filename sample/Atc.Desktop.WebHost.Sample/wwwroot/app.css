@@ -1,0 +1,92 @@
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --border: #d1d9e0;
+  --bar: #f6f8fa;
+  --accent: #0969da;
+  font-family: -apple-system, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+}
+
+/* Must match the window background (WebHostOptions.DarkBackground) to avoid a flash. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --muted: #9198a1;
+  --border: #3d444d;
+  --bar: #151b23;
+  --accent: #4493f8;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "bar bar" "main panel" "status status";
+}
+
+.toolbar, .status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bar);
+  border-color: var(--border);
+  border-style: solid;
+  border-width: 0;
+}
+
+.toolbar { grid-area: bar; border-bottom-width: 1px; }
+.status { grid-area: status; border-top-width: 1px; color: var(--muted); font-size: 12px; }
+.spacer { flex: 1; }
+.title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--accent); }
+
+main { grid-area: main; overflow: auto; min-width: 0; }
+
+.welcome { padding: 32px; max-width: 720px; }
+.welcome h1 { font-size: 24px; margin: 0 0 8px; }
+
+.text {
+  margin: 0;
+  padding: 12px 16px;
+  font: 13px/1.5 ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  white-space: pre;
+  tab-size: 4;
+}
+
+.panel {
+  grid-area: panel;
+  width: 360px;
+  overflow: auto;
+  padding: 0 12px;
+  border-left: 1px solid var(--border);
+  font-size: 12px;
+}
+
+table { border-collapse: collapse; width: 100%; }
+td, th { text-align: left; padding: 2px 6px; border-bottom: 1px solid var(--border); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }

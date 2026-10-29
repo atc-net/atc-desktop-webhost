@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Atc.Desktop.WebHost.Linux</PackageId>
+    <Description>Linux window for Atc.Desktop.WebHost: GTK4 + WebKitGTK 6.0 via GirCore.</Description>
+    <PackageTags>desktop;webview;webkitgtk;gtk;linux</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GirCore.WebKit-6.0" Version="0.9.0-preview.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Atc.Desktop.WebHost\Atc.Desktop.WebHost.csproj" />
+  </ItemGroup>
+
+</Project>

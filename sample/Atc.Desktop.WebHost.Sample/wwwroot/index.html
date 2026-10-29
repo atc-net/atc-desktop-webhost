@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atc.Desktop.WebHost sample</title>
+  <!-- atcHost exists before any page script, so the theme is set before the first paint. -->
+  <script>document.documentElement.dataset.theme = window.atcHost ? atcHost.boot.theme : "light";</script>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="toolbar">
+    <button id="open" type="button" title="Open a file (Ctrl+O)">Open…</button>
+    <span id="title" class="title">No file</span>
+    <span class="spacer"></span>
+    <button id="bench" type="button" title="Bridge benchmarks">Bridge bench</button>
+    <button id="theme" type="button" title="Switch theme">Theme</button>
+  </header>
+  <main id="main">
+    <section id="welcome" class="welcome">
+      <h1>Atc.Desktop.WebHost</h1>
+      <p>Open a text file, or start the app with a file path. Startup timings are shown below.</p>
+    </section>
+    <pre id="text" class="text" hidden></pre>
+  </main>
+  <aside id="panel" class="panel" hidden>
+    <h2>Bridge</h2>
+    <div id="bridge-results">Running…</div>
+  </aside>
+  <footer class="status">
+    <span id="status">Starting…</span>
+    <span class="spacer"></span>
+    <span id="platform"></span>
+  </footer>
+</body>
+</html>
