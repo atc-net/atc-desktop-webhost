@@ -6,7 +6,9 @@ Guidance for Claude Code (and other agents) working in this repo.
 
 `Atc.Desktop.WebHost` is a fast desktop host for .NET apps with a web (TypeScript) frontend: a native window with a webview, a typed JSON message bridge, and a startup pipeline tuned for **time to first content**. It is the shared host for the ATC viewer apps (Markdown viewer first). The host knows nothing about file formats: each app passes a `LoadDocument(path)` function and its own bridge handlers.
 
-Status: early. Windows works and is measured (~570–640 ms to first paint, 5k-line file, JIT build). The Linux window compiles but **has never run**.
+Status: early. Windows works and is measured (~300–640 ms to first paint, 5k-line file, depending on how warm WebView2 is). Linux runs in WSL (Ubuntu, WebKitGTK 2.52): ~820 ms with software rendering. Only startup and bench mode have been exercised there.
+
+To run on Linux from WSL, build from a clone in the WSL home folder (not `/mnt/d/...`), so Linux and Windows don't share `bin/` and `obj/`. Packages needed: `dotnet-sdk-10.0 libgtk-4-1 libwebkitgtk-6.0-4`.
 
 ## Layout
 

@@ -8,7 +8,7 @@ A fast desktop host for .NET apps with a web frontend: a native window with a we
 | `Atc.Desktop.WebHost.Windows` | Windows window: plain Win32 + WebView2. No WinForms, WPF or WinUI is loaded. |
 | `Atc.Desktop.WebHost.Linux` | Linux window: GTK4 + WebKitGTK 6.0 through [GirCore](https://github.com/gircore/gir.core). Needs `libgtk-4-1` and `libwebkitgtk-6.0-4`. |
 
-Status: early. Windows works and is measured; the Linux window compiles but has not been run yet.
+Status: early. Windows works and is measured. The Linux window runs (tested in WSL on Ubuntu with WebKitGTK 2.52) but has only been tested lightly.
 
 ## Quick start
 

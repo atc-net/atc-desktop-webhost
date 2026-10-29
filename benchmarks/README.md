@@ -54,9 +54,32 @@ Same PC, SmartScreen off, UI from a folder, 15 runs each, run back to back as JI
 
 WebView2 memory at first paint was ~240 MB this session (~176 MB before).
 
+### Linux (WebKitGTK), first runs (2026-10-29)
+
+WSL on David's PC: Ubuntu, GTK 4.22, WebKitGTK 2.52, .NET 10.0.5, JIT Release build, 5,000-line fixture. Run directly with `--bench` (`measure.ps1` is Windows-only so far). **Software rendering:** the WSL user can't open `/dev/dri` (not in the `video`/`render` groups), so these are worst-case paint numbers.
+
+| Run | First paint |
+|---|---|
+| Very first launch (cold) | 2,256 ms |
+| 5 warm launches | 800–871 ms (median 822 ms) |
+
+Where the time goes (warm, typical run):
+
+| Phase | ms | |
+|---|---|---|
+| Process start → `Main` | ~22 | Faster than on Windows (~55 ms) |
+| `Main` → GTK initialized | ~150 | Loading GTK and WebKitGTK through GirCore |
+| GTK initialized → window created | ~105 | |
+| Window → navigate | ~35 | |
+| Navigate → page script runs | ~370 | WebKit's web process starting; the largest phase, outside our code |
+| Script → content in DOM | ~20 | |
+| Content → first paint | ~110 | Two animation frames with software rendering |
+
+Host process memory: ~170 MB private. It includes GTK and WebKit's UI side, which run in-process on Linux. The WebKit web process isn't counted yet, because the Linux window doesn't report its process ids.
+
 ## Next measurements
 
 - **Why WebView2 controller creation varies 4×.** Measure with and without other WebView2 apps running (Teams, Outlook, Widgets), and after a reboot.
 - **Per's WinUI 3 spike on the same PC.** Publish `spikes/SpikeWinUI` and run it with the same script, so both numbers come from one machine.
 - **Native AOT.** `Microsoft.Web.WebView2.Core` uses built-in COM interop, which AOT doesn't support. That needs a ComWrappers-based binding first. Low priority: ReadyToRun showed the .NET phases aren't JIT-bound.
-- **Linux (WebKitGTK).** Run the same script on a Linux machine.
+- **Linux with GPU rendering.** In WSL, add the user to the `video` and `render` groups and measure again. Better still, measure on a real Linux machine. Make `measure.ps1` run under `pwsh` on Linux.
