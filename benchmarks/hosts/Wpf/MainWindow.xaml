@@ -1,0 +1,8 @@
+<Window x:Class="AtcBench.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="WPF + WebView2" Width="1200" Height="800" Background="White">
+  <!-- No Source here: navigating before the settings are applied would leave SmartScreen on. -->
+  <wv2:WebView2 x:Name="WebView" DefaultBackgroundColor="White" />
+</Window>

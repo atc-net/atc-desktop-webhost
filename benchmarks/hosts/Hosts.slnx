@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Wpf/AtcBench.Wpf.csproj" />
+  <Project Path="WinUI/AtcBench.WinUI.csproj">
+    <Platform Solution="*|Any CPU" Project="x64" />
+  </Project>
+</Solution>

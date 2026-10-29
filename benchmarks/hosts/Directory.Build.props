@@ -1,0 +1,26 @@
+<Project>
+
+  <!--
+    Stand-alone on purpose: the repo's root props (analyzers, warnings as errors) are not imported.
+    The startup settings match sample/Atc.Desktop.WebHost.Sample so every host is tuned the same way.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" LinkBase="Shared" />
+    <!-- The sample's own page, so every host shows exactly the same content. -->
+    <Content Include="$(MSBuildThisFileDirectory)..\..\sample\Atc.Desktop.WebHost.Sample\wwwroot\**" LinkBase="wwwroot" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

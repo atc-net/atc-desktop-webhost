@@ -1,0 +1,11 @@
+# The comparison hosts are benchmark apps, not library code: the repo's coding rules don't apply here.
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+
+[*.{xml,csproj,props,targets,xaml,slnx,json}]
+indent_size = 2

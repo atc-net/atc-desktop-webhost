@@ -429,3 +429,5 @@ FodyWeavers.xsd
 
 # Benchmark runs (machine-specific; summaries go in benchmarks/README.md)
 benchmarks/results/
+# Created by benchmarks/New-Fixtures.ps1; too large to commit
+benchmarks/fixtures/text-10mb.txt

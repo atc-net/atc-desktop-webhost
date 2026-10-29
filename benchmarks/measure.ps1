@@ -87,6 +87,7 @@ $summary = [ordered]@{
     minMs         = [math]::Round(($main | Measure-Object -Minimum).Minimum, 1)
     maxMs         = [math]::Round(($main | Measure-Object -Maximum).Maximum, 1)
     medians       = $medians
+    runValues     = @($results | ForEach-Object { $r = $_; $o = [ordered]@{}; foreach ($k in $numericKeys) { $o[$k] = [double]$r[$k] }; $o })
     installSizeMB = [math]::Round(((Get-ChildItem $exeDir -Recurse -File | Measure-Object Length -Sum).Sum / 1MB), 1)
     machine       = "$((Get-CimInstance Win32_Processor).Name.Trim()), $([System.Environment]::OSVersion.VersionString)"
     date          = (Get-Date -Format 'yyyy-MM-dd')

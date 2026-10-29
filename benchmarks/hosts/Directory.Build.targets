@@ -1,0 +1,3 @@
+<Project>
+  <!-- Stops the repo's root targets from being imported: they remove WebView2's WPF control, which the WPF host needs. -->
+</Project>
