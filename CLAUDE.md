@@ -62,7 +62,7 @@ The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--de
 - Results are pre-serialized `JsonPayload` values, spliced into messages as-is. Throw `BridgeException(code, message)` for expected errors.
 - Built-in handlers are in `WebHostApplication.Handlers.cs`; their DTOs are in `BuiltInMessages.cs` and `BridgeJsonContext.cs`.
 
-**Page side** (`Hosting/HostScript.cs`): the injected shim defines `window.atcHost` (`platform`, `boot`, `request`, `notify`, `on`, `ready`), the same on WebView2 and WebKitGTK. Pages never touch `window.chrome.webview` or `window.webkit.messageHandlers` directly. If you change the shim or the message shape, keep `@atc-net/viewer-host` (the TS package, in another repo) in mind.
+**Page side** (`Hosting/HostScript.cs`): the injected shim defines `window.atcHost` (`platform`, `boot`, `request`, `notify`, `on`, `ready`), the same on WebView2 and WebKitGTK. Pages never touch `window.chrome.webview` or `window.webkit.messageHandlers` directly. If you change the shim, the boot object or the message shape, update `docs/host-contract.md` and keep `@atc-net/viewer-host` (the TS package, in another repo) in mind. Removing or renaming anything there is a breaking change.
 
 **Folders** (`Hosting/HostPaths.cs`): settings in `%APPDATA%\{Vendor}\{AppId}`, data and the WebView2 profile in `%LOCALAPPDATA%\{Vendor}\{AppId}` (XDG on Linux). A `portable.flag` file next to the exe puts both in `data\` beside it.
 

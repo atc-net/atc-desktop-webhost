@@ -103,6 +103,8 @@ Built-in requests:
 
 Built-in events: `settings.changed`, `file.changed`, `document.opened`.
 
+The full page-side contract (boot object, messages, error codes, versioning) is in [docs/host-contract.md](docs/host-contract.md).
+
 ## 🧪 Sample
 
 `sample/Atc.Desktop.WebHost.Sample` is a small text viewer. It demonstrates the host and is the app the benchmarks run.
