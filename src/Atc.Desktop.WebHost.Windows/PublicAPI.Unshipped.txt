@@ -1,0 +1,9 @@
+#nullable enable
+Atc.Desktop.WebHost.Windows.WebView2Platform
+Atc.Desktop.WebHost.Windows.WebView2Platform.AllowActivationHandOff() -> void
+Atc.Desktop.WebHost.Windows.WebView2Platform.IsSupported.get -> bool
+Atc.Desktop.WebHost.Windows.WebView2Platform.IsSystemDarkTheme() -> bool
+Atc.Desktop.WebHost.Windows.WebView2Platform.Name.get -> string!
+Atc.Desktop.WebHost.Windows.WebView2Platform.Origin.get -> string!
+Atc.Desktop.WebHost.Windows.WebView2Platform.Run(Atc.Desktop.WebHost.Platform.HostWindowOptions! options, Atc.Desktop.WebHost.Platform.IHostWindowEvents! events) -> int
+Atc.Desktop.WebHost.Windows.WebView2Platform.WebView2Platform() -> void

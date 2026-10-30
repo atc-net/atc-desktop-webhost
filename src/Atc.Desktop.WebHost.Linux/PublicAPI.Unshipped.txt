@@ -1,0 +1,9 @@
+#nullable enable
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.AllowActivationHandOff() -> void
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.IsSupported.get -> bool
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.IsSystemDarkTheme() -> bool
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.Name.get -> string!
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.Origin.get -> string!
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.Run(Atc.Desktop.WebHost.Platform.HostWindowOptions! options, Atc.Desktop.WebHost.Platform.IHostWindowEvents! events) -> int
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.WebKitGtkPlatform() -> void

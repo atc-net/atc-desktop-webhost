@@ -20,4 +20,9 @@
     <!-- Recommended: Embed symbols containing Source Link in the main file (exe/dll) -->
     <DebugType>embedded</DebugType>
   </PropertyGroup>
+
+  <ItemGroup Label="Public API tracking">
+    <!-- Every public API change shows up in PublicAPI.Unshipped.txt, so it is visible in review. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>
