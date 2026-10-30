@@ -101,6 +101,7 @@ public sealed partial class WebHostApplication
             var path = await RequireWindow()
                 .ShowOpenFileDialogAsync(ToDialogOptions(request, Options.OpenFileFilters))
                 .ConfigureAwait(true);
+            GrantPicked(path);
             return JsonPayload.From(new BuiltInMessages.FileDialogResult(path), BridgeJsonContext.Default.FileDialogResult);
         });
 
@@ -110,6 +111,7 @@ public sealed partial class WebHostApplication
             var path = await RequireWindow()
                 .ShowSaveFileDialogAsync(ToDialogOptions(request, []))
                 .ConfigureAwait(true);
+            GrantPicked(path);
             return JsonPayload.From(new BuiltInMessages.FileDialogResult(path), BridgeJsonContext.Default.FileDialogResult);
         });
     }
@@ -118,13 +120,13 @@ public sealed partial class WebHostApplication
     {
         Bridge.Handle("document.load", async (request, _) =>
         {
-            var path = Path.GetFullPath(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path);
+            var path = pathScope.Require(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path);
             return await Task.Run(() => LoadDocumentAsync(path, isInitial: false), Lifetime).ConfigureAwait(true);
         });
 
         Bridge.Handle("file.watch", (request, _) =>
         {
-            fileWatch.Watch(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path);
+            fileWatch.Watch(pathScope.Require(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path));
             return ValueTask.FromResult(JsonPayload.Null);
         });
 
@@ -148,6 +150,14 @@ public sealed partial class WebHostApplication
             DefaultPath = payload?.DefaultPath,
             Filters = payload?.Filters is { Count: > 0 } filters ? filters : defaultFilters,
         };
+    }
+
+    private void GrantPicked(string? path)
+    {
+        if (path is not null)
+        {
+            pathScope.Grant(path);
+        }
     }
 
     private IHostWindow RequireWindow()

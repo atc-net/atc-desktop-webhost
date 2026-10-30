@@ -18,6 +18,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
 {
     private readonly CancellationTokenSource lifetime = new();
     private readonly FileWatchService fileWatch;
+    private readonly PathScope pathScope;
     private WebHostCommandLine commandLine = WebHostCommandLine.Parse([]);
     private Task<JsonPayload>? initialDocument;
     private SingleInstance? singleInstance;
@@ -38,6 +39,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         Paths = HostPaths.Resolve(options.Vendor, options.AppId);
         Settings = new SettingsStore(Paths.ConfigFolder);
         fileWatch = new FileWatchService(OnFileChanged, options.FileChangeDebounce);
+        pathScope = new PathScope(options.RestrictFileAccess);
         RegisterBuiltInHandlers();
     }
 
@@ -68,6 +70,15 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     public CancellationToken Lifetime
         => lifetime.Token;
 
+    /// <summary>
+    /// Lets the page read and watch this file's folder and everything below it. The host already does this for
+    /// files from the command line, a second launch and the Open and Save dialogs; call it when the app gets a
+    /// file another way (for example its own recent-files list).
+    /// </summary>
+    /// <param name="filePath">A file the user chose.</param>
+    public void GrantFileAccess(string filePath)
+        => pathScope.Grant(filePath);
+
     /// <summary>Runs the app until the window closes.</summary>
     /// <param name="args">The command-line arguments.</param>
     /// <returns>The process exit code.</returns>
@@ -90,6 +101,11 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
 
         Clock.Mark("run");
         var files = commandLine.Files;
+        foreach (var file in files)
+        {
+            pathScope.Grant(file);
+        }
+
         if (Options.SingleInstance && !commandLine.IsBench && !commandLine.IsNewInstance)
         {
             singleInstance = SingleInstance.Acquire(Options.AppId, files, platform.AllowActivationHandOff);
@@ -287,6 +303,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             Window?.BringToFront();
             foreach (var file in files)
             {
+                pathScope.Grant(file);
                 _ = OpenFromSecondInstanceAsync(file);
             }
         });

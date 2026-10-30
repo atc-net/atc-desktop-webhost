@@ -44,6 +44,12 @@ public sealed class WebHostOptions
     /// <summary>Gets a value indicating whether dev tools and the default context menu are enabled. Also on with <c>--devtools</c>.</summary>
     public bool DevToolsEnabled { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether the page may only read and watch files in the folders of files the user chose
+    /// (command line, a second launch, the Open and Save dialogs). Default on. Turn it off only for trusted pages.
+    /// </summary>
+    public bool RestrictFileAccess { get; init; } = true;
+
     /// <summary>Gets a value indicating whether a second launch hands its files to the running window.</summary>
     public bool SingleInstance { get; init; } = true;
 
