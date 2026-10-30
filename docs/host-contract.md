@@ -13,8 +13,7 @@ Status: **draft**. It describes what the host does today. Points marked 🟡 are
 
 - `.example` is a reserved top-level domain, so the address can never be a real site.
 - The frontend is served from a folder (fastest) or from embedded resources. Either way, the page never runs from `file://`, so `fetch` and ES modules work.
-- Navigation away from the app opens the system browser (http, https, mailto only). On Linux this isn't done yet: links navigate inside the app.
-- 🟡 **Known gap:** on Linux, `boot.origin` reports the Windows address, not `atc-app://app`.
+- Navigation away from the app, and links that would open a new window, open in the system browser instead (http, https and mailto only; other links are ignored).
 - 🟡 **Proposed:** the same `https://` addresses on both platforms, with a second host for the document's folder (for example `https://doc.atc-webhost.example/`). On Linux this needs WebKitGTK to serve `https` for a custom host, which still has to be tried.
 
 ## 2. `window.atcHost`
@@ -45,7 +44,7 @@ Available as `atcHost.boot` before the first page script, so the first paint nee
 | `appId` | string | The app's id, e.g. `AtcSoft.Markdown.Viewer` |
 | `platform` | `"webview2"` \| `"webkitgtk"` | Same as `atcHost.platform` |
 | `theme` | `"light"` \| `"dark"` | Resolved theme (the `theme` setting, or the OS when it's `system`). The window was painted in this theme's background colour |
-| `origin` | string | The page's origin (see the Linux gap above) |
+| `origin` | string | The page's origin: `https://app.atc-webhost.example` on Windows, `atc-app://app` on Linux |
 | `bench` | boolean | Started with `--bench`: the page should report first paint and do nothing else |
 | `files` | string[] | Files from the command line, full paths |
 | `settings` | object | The app's settings (JSON object, app-defined) |
@@ -67,8 +66,7 @@ All messages are JSON text.
 | host → page, event | `{ kind: "event", type, payload }` |
 
 - Events are held back until the page sends `host.ready`. Responses are never held back.
-- On Windows the host only accepts messages from its own origin.
-- 🟡 **Known gap:** on Linux the host doesn't check the sender yet. Because links still navigate inside the app there, a page from another site could send requests. Both need fixing before an app ships on Linux.
+- The host only accepts messages from a page on its own origin.
 
 ### Built-in requests
 
@@ -87,7 +85,11 @@ All messages are JSON text.
 | `file.watch` / `file.unwatch` | `{ path }` | `null` |
 | `shell.openExternal` | `{ url }` (http, https, mailto) | `null` |
 
-🟡 `document.load` and `file.watch` accept any path today. Proposed: only the open document's folder and paths the user picked in a dialog or passed on the command line.
+### Which files the page may use
+
+`document.load` and `file.watch` only accept files in the folder of a file the user chose, or below it. The user chooses a file by passing it on the command line, opening it with a second launch, or picking it in the Open or Save dialog. Anything else is refused with `forbidden`, so a page, or script injected into it, can't read arbitrary files. Relative segments (`..`) are resolved before the check.
+
+An app can allow more with `WebHostApplication.GrantFileAccess(path)`, for example for its own recent-files list, or turn the check off with `WebHostOptions.RestrictFileAccess = false` (trusted pages only).
 
 ### Built-in events
 
@@ -106,6 +108,7 @@ Apps add their own requests and events with `Bridge.Handle` and `Bridge.Emit`. U
 | `bad_request` | The message or payload is invalid |
 | `unknown_type` | No handler for this request type |
 | `cancelled` | The page cancelled the request |
+| `forbidden` | The file is outside the folders the user opened (see "Which files the page may use") |
 | `not_ready` | The window isn't created yet |
 | `not_supported` | The app doesn't support this (for example `document.load` without a `LoadDocument`) |
 | `handler_error` | The handler threw an unexpected exception |

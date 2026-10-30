@@ -5,6 +5,7 @@ global using System.Runtime.InteropServices;
 global using System.Runtime.Versioning;
 global using System.Text;
 global using Atc.Desktop.WebHost.Frontend;
+global using Atc.Desktop.WebHost.Hosting;
 global using Atc.Desktop.WebHost.Platform;
 global using Atc.Desktop.WebHost.Windows.Interop;
 global using Microsoft.Web.WebView2.Core;

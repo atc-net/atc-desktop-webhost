@@ -12,6 +12,10 @@ public sealed class WebKitGtkPlatform : IHostPlatform
         => "webkitgtk";
 
     /// <inheritdoc />
+    public string Origin
+        => GtkHostWindow.Origin;
+
+    /// <inheritdoc />
     public bool IsSupported
         => OperatingSystem.IsLinux();
 

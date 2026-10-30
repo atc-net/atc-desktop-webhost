@@ -1,6 +1,7 @@
 global using System.Buffers;
 global using System.Collections.Concurrent;
 global using System.Diagnostics;
+global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
 global using System.IO.Pipes;
 global using System.Reflection;

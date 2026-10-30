@@ -141,7 +141,7 @@ internal sealed partial class Win32Window
         }
 
         e.Cancel = true;
-        OpenExternally(e.Uri);
+        ExternalLinks.TryOpen(e.Uri);
     }
 
     private static void OnNewWindowRequested(
@@ -149,16 +149,6 @@ internal sealed partial class Win32Window
         CoreWebView2NewWindowRequestedEventArgs e)
     {
         e.Handled = true;
-        OpenExternally(e.Uri);
-    }
-
-    private static void OpenExternally(string url)
-    {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
-            uri.Scheme is "http" or "https" or "mailto")
-        {
-            using var process = System.Diagnostics.Process.Start(
-                new System.Diagnostics.ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
-        }
+        ExternalLinks.TryOpen(e.Uri);
     }
 }

@@ -247,7 +247,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             writer.WriteString("appId", Options.AppId);
             writer.WriteString("platform", Options.Platform.Name);
             writer.WriteString("theme", theme);
-            writer.WriteString("origin", FrontendSource.Origin);
+            writer.WriteString("origin", Options.Platform.Origin);
             writer.WriteBoolean("bench", commandLine.IsBench);
             writer.WriteStartArray("files");
             foreach (var file in commandLine.Files)

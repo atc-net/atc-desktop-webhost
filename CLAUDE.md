@@ -64,6 +64,8 @@ The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--de
 
 **Page side** (`Hosting/HostScript.cs`): the injected shim defines `window.atcHost` (`platform`, `boot`, `request`, `notify`, `on`, `ready`), the same on WebView2 and WebKitGTK. Pages never touch `window.chrome.webview` or `window.webkit.messageHandlers` directly. If you change the shim, the boot object or the message shape, update `docs/host-contract.md` and keep `@atc-net/viewer-host` (the TS package, in another repo) in mind. Removing or renaming anything there is a breaking change.
 
+**File access** (`Files/PathScope.cs`): `document.load` and `file.watch` only accept files in or below the folder of a file the user chose (command line, second launch, Open/Save dialog); otherwise `forbidden`. Apps widen it with `GrantFileAccess`. Any new handler that takes a path from the page must go through `pathScope.Require`.
+
 **Folders** (`Hosting/HostPaths.cs`): settings in `%APPDATA%\{Vendor}\{AppId}`, data and the WebView2 profile in `%LOCALAPPDATA%\{Vendor}\{AppId}` (XDG on Linux). A `portable.flag` file next to the exe puts both in `data\` beside it.
 
 ## Conventions
@@ -89,7 +91,7 @@ The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--de
 - **Open/Save dialogs** run from the window's message loop, not inside a WebView2 event handler, to avoid a hang.
 - **One window per process.** `Win32Window` enforces it.
 - **The Windows window is modelled on Photino.Native's C++, but no code is copied.** Keep it that way (license and credits in the README).
-- **Linux gaps:** links navigate inside the app, the profile folder isn't set, dark theme only through `GTK_THEME`, no process ids, origin `atc-app://app/`.
+- **Linux gaps:** the profile folder isn't set, dark theme only through `GTK_THEME`, no process ids, origin `atc-app://app/` (not `https`). External links are handled like on Windows, but that hasn't been clicked through on Linux yet.
 - `FileWatchServiceTests.SeveralWrites_AreReportedOnce` depends on timing and may be flaky on slow CI runners.
 - ReadyToRun (`dotnet publish sample/Atc.Desktop.WebHost.Sample -c Release -r win-x64`) gives no measurable startup gain, only a smaller install.
 - WebView2 start varies up to 4× between sessions on the same PC (total ~300 ms vs ~600 ms). Only compare variants measured back to back in the same session.

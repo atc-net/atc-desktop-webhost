@@ -12,6 +12,10 @@ public sealed class WebView2Platform : IHostPlatform
         => "webview2";
 
     /// <inheritdoc />
+    public string Origin
+        => FrontendSource.Origin;
+
+    /// <inheritdoc />
     public bool IsSupported
         => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763);
 

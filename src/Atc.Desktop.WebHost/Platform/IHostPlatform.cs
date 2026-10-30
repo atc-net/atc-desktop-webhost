@@ -9,6 +9,9 @@ public interface IHostPlatform
     /// <summary>Gets a short name, e.g. "webview2" or "webkitgtk". The page sees it as <c>atcHost.platform</c>.</summary>
     string Name { get; }
 
+    /// <summary>Gets the origin the page is served from, e.g. "https://app.atc-webhost.example". The page sees it as <c>atcHost.boot.origin</c>.</summary>
+    string Origin { get; }
+
     /// <summary>Gets a value indicating whether this platform works on the current OS.</summary>
     bool IsSupported { get; }
 

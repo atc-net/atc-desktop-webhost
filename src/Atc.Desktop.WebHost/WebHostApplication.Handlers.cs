@@ -74,14 +74,9 @@ public sealed partial class WebHostApplication
         Bridge.Handle("shell.openExternal", (request, _) =>
         {
             var url = request.Deserialize(BridgeJsonContext.Default.UrlRequest).Url;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
-                uri.Scheme is not ("http" or "https" or "mailto"))
-            {
-                throw new BridgeException("bad_request", "Only http, https and mailto links are opened.");
-            }
-
-            using var process = Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
-            return ValueTask.FromResult(JsonPayload.Null);
+            return ExternalLinks.TryOpen(url)
+                ? ValueTask.FromResult(JsonPayload.Null)
+                : throw new BridgeException("bad_request", "Only http, https and mailto links are opened.");
         });
     }
 

@@ -15,7 +15,10 @@ internal sealed class GtkHostWindow : IHostWindow
     /// <summary>The custom scheme the frontend is served from.</summary>
     public const string Scheme = "atc-app";
 
-    private const string OriginPrefix = Scheme + "://app/";
+    /// <summary>The page's origin.</summary>
+    public const string Origin = Scheme + "://app";
+
+    private const string OriginPrefix = Origin + "/";
 
     private readonly HostWindowOptions options;
     private readonly IHostWindowEvents events;
@@ -176,12 +179,46 @@ internal sealed class GtkHostWindow : IHostWindow
 
         var contentManager = webView.GetUserContentManager();
         contentManager.RegisterScriptMessageHandler(HostScript.MessageHandlerName, worldName: null);
-        contentManager.OnScriptMessageReceived += (_, e) => events.OnMessage(e.Value.ToString());
+        contentManager.OnScriptMessageReceived += (_, e) =>
+        {
+            // Only the app's own page may talk to the host.
+            if (IsOnOrigin(webView.GetUri()))
+            {
+                events.OnMessage(e.Value.ToString());
+            }
+        };
+        webView.OnDecidePolicy += (_, e) => OnDecidePolicy(e.Decision, e.DecisionType);
 
         window.SetChild(webView);
         window.Present();
         events.OnWindowCreated(this, SynchronizationContext.Current!);
         _ = LoadPageAsync(contentManager);
+    }
+
+    private static bool IsOnOrigin(string? uri)
+        => uri is not null && uri.StartsWith(OriginPrefix, StringComparison.Ordinal);
+
+    /// <summary>The app's page stays in the window; links to other sites open in the default browser.</summary>
+    /// <returns>True when the navigation was handled here (ignored).</returns>
+    private static bool OnDecidePolicy(
+        WebKit.PolicyDecision decision,
+        WebKit.PolicyDecisionType type)
+    {
+        if (type is not (WebKit.PolicyDecisionType.NavigationAction or WebKit.PolicyDecisionType.NewWindowAction) ||
+            decision is not WebKit.NavigationPolicyDecision navigation)
+        {
+            return false;
+        }
+
+        var uri = navigation.GetNavigationAction().GetRequest().GetUri();
+        if (type == WebKit.PolicyDecisionType.NavigationAction && IsOnOrigin(uri))
+        {
+            return false;
+        }
+
+        decision.Ignore();
+        ExternalLinks.TryOpen(uri);
+        return true;
     }
 
     private async Task LoadPageAsync(WebKit.UserContentManager contentManager)
