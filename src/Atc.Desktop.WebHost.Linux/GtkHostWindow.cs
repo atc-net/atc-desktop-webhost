@@ -108,7 +108,7 @@ internal sealed class GtkHostWindow : IHostWindow
     }
 
     public IReadOnlyList<int> GetBrowserProcessIds()
-        => [];
+        => ProcessTree.GetDescendants(Environment.ProcessId);
 
     /// <summary>GApplication ids must look like "org.example.App": letters, digits, '_' and at least one dot.</summary>
     /// <param name="appId">The app id.</param>
@@ -171,8 +171,11 @@ internal sealed class GtkHostWindow : IHostWindow
             return false;
         };
 
+        // Window decorations, dialogs and the page's prefers-color-scheme follow the app's theme.
+        Gtk.Settings.GetDefault()?.GtkApplicationPreferDarkTheme = options.IsDark;
+
         RegisterScheme();
-        webView = WebKit.WebView.New();
+        webView = CreateWebView(options.DataFolder);
         SetBackground(webView, options.BackgroundColor);
         webView.GetSettings().SetEnableDeveloperExtras(options.DevToolsEnabled);
         webView.OnContextMenu += (_, _) => !options.DevToolsEnabled;
@@ -193,6 +196,23 @@ internal sealed class GtkHostWindow : IHostWindow
         window.Present();
         events.OnWindowCreated(this, SynchronizationContext.Current!);
         _ = LoadPageAsync(contentManager);
+    }
+
+    /// <summary>
+    /// Creates the webview with its own profile (local storage, cookies, cache) in <paramref name="dataFolder"/>,
+    /// like the WebView2 user data folder on Windows. The default session would share WebKit's folders per user.
+    /// </summary>
+    private static WebKit.WebView CreateWebView(string dataFolder)
+    {
+        var session = WebKit.NetworkSession.New(dataFolder, Path.Combine(dataFolder, "cache"));
+#pragma warning disable CA2000 // Disposing the argument also frees the value.
+        var value = new GObject.Value();
+#pragma warning restore CA2000
+        value.Init(WebKit.NetworkSession.GetGType());
+        value.SetObject(session);
+
+        using var argument = new GObject.ConstructArgument("network-session", value);
+        return WebKit.WebView.NewWithProperties([argument]);
     }
 
     private static bool IsOnOrigin(string? uri)

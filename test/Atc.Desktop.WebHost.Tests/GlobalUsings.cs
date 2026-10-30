@@ -1,3 +1,4 @@
+global using System.Diagnostics;
 global using System.Text.Json.Nodes;
 global using System.Text.Json.Serialization;
 global using Atc.Desktop.WebHost.Bridge;

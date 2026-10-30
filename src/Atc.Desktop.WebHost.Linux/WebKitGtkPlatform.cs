@@ -7,6 +7,8 @@ namespace Atc.Desktop.WebHost.Linux;
 [SupportedOSPlatform("linux")]
 public sealed class WebKitGtkPlatform : IHostPlatform
 {
+    private const string InterfaceSchema = "org.gnome.desktop.interface";
+
     /// <inheritdoc />
     public string Name
         => "webkitgtk";
@@ -22,10 +24,26 @@ public sealed class WebKitGtkPlatform : IHostPlatform
     /// <inheritdoc />
     public bool IsSystemDarkTheme()
     {
-        // GTK_THEME=Adwaita:dark is the common explicit switch. Reading the desktop's colour scheme
-        // (org.gnome.desktop.interface color-scheme) needs a settings schema that may not exist.
-        var theme = Environment.GetEnvironmentVariable("GTK_THEME");
-        return theme is not null && theme.EndsWith(":dark", StringComparison.OrdinalIgnoreCase);
+        var variable = Environment.GetEnvironmentVariable("GTK_THEME");
+        if (!string.IsNullOrEmpty(variable))
+        {
+            return DesktopTheme.IsDark(variable, colorScheme: null, gtkThemeName: null);
+        }
+
+        // GNOME's settings (KDE and others write the GTK theme there too). The schema may be missing,
+        // for example on a bare WSL install, so look it up before reading. Reading costs ~10 ms; GTK loads Gio anyway.
+        Gio.Module.Initialize();
+        using var schema = Gio.SettingsSchemaSource.GetDefault()?.Lookup(InterfaceSchema, recursive: true);
+        if (schema is null)
+        {
+            return false;
+        }
+
+        using var settings = Gio.Settings.New(InterfaceSchema);
+        return DesktopTheme.IsDark(
+            gtkThemeVariable: null,
+            colorScheme: schema.HasKey("color-scheme") ? settings.GetString("color-scheme") : null,
+            gtkThemeName: schema.HasKey("gtk-theme") ? settings.GetString("gtk-theme") : null);
     }
 
     /// <inheritdoc />

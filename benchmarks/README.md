@@ -105,7 +105,7 @@ WSL on David's PC: Ubuntu, GTK 4.22, WebKitGTK 2.52, .NET 10.0.5, JIT Release bu
 | Script → content in DOM | ~20 | |
 | Content → first paint | ~110 | Two animation frames with software rendering |
 
-🧠 Host process memory: ~170 MB private. It includes GTK and WebKit's UI side, which run in-process on Linux. The WebKit web process isn't counted yet, because the Linux window doesn't report its process ids.
+🧠 Memory: ~190 MB private in the host process, which includes GTK and WebKit's UI side (in-process on Linux), plus ~170 MB in WebKit's own processes (web, network and sandbox helpers), ~360 MB in total.
 
 ## 🔭 Next measurements
 
