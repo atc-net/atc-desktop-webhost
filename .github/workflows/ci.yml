@@ -28,3 +28,22 @@ jobs:
 
       - name: Test
         run: dotnet test --project test/Atc.Desktop.WebHost.Tests/Atc.Desktop.WebHost.Tests.csproj -c Release --no-build
+
+      # Start the sample once and check that the page reports first paint: catches a broken window,
+      # webview or bridge, which the unit tests can't.
+      - name: Install WebKitGTK and a virtual display
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-4-1 libwebkitgtk-6.0-4 xvfb
+          # Ubuntu 24.04 blocks the user namespaces that WebKit's process sandbox uses.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Startup smoke test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./benchmarks/Test-Startup.ps1 -TimeoutSeconds 120
+
+      - name: Startup smoke test (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a pwsh ./benchmarks/Test-Startup.ps1 -TimeoutSeconds 120

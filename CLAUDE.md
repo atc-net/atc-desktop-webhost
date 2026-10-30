@@ -19,7 +19,7 @@ To run on Linux from WSL, build from a clone in the WSL home folder (not `/mnt/d
 | `src/Atc.Desktop.WebHost.Linux` | GTK4 + WebKitGTK 6.0 through GirCore (`GirCore.WebKit-6.0` preview) |
 | `sample/Atc.Desktop.WebHost.Sample` | Demo text viewer (`atc-webhost-sample`). It is also the app the benchmarks run |
 | `test/Atc.Desktop.WebHost.Tests` | Unit tests for the core only (xunit v3, Microsoft Testing Platform) |
-| `benchmarks/` | `measure.ps1` (adapted from Per's), `Compare-Hosts.ps1`, `New-Fixtures.ps1`, `README.md` with results. `benchmarks/results/` and `fixtures/text-10mb.txt` are git-ignored |
+| `benchmarks/` | `measure.ps1` (adapted from Per's), `Compare-Hosts.ps1`, `New-Fixtures.ps1`, `Test-Startup.ps1` (CI smoke test), `README.md` with results. `benchmarks/results/` and `fixtures/text-10mb.txt` are git-ignored |
 | `benchmarks/hosts` | Comparison hosts (WPF + WebView2, WinUI 3 + WebView2) with their own `Hosts.slnx` and build settings. Not in the main solution or CI. Fairness rules in its README |
 
 Solution file: `Atc.Desktop.WebHost.slnx`. Target: `net10.0`, C# 14.
@@ -42,6 +42,8 @@ pwsh benchmarks/Compare-Hosts.ps1      # this host vs WPF and WinUI 3, both file
 pwsh benchmarks/measure.ps1 -Exe sample/Atc.Desktop.WebHost.Sample/bin/Release/net10.0/atc-webhost-sample.exe `
     -Fixture benchmarks/fixtures/text-1kb.txt -Label 1kb -Runs 15
 ```
+
+CI also runs `benchmarks/Test-Startup.ps1` on both OSes (Linux under `xvfb-run`): it starts the sample once with `--bench` and fails if the page doesn't report first paint.
 
 The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--devtools`. The sample adds `--ui=folder|embedded` and `--browser-args=...`.
 
@@ -76,6 +78,7 @@ The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--de
 - Expression-bodied members put `=>` on the next line.
 - Trailing commas in multi-line initializers (SA1413 is an error).
 - XML docs on public API. Write short, plain sentences.
+- **Public API is tracked** (`Microsoft.CodeAnalysis.PublicApiAnalyzers`). Every public member of the `src` projects is listed in its `PublicAPI.Unshipped.txt`; a missing or stale line fails the build (RS0016/RS0017). Add lines by hand or run `dotnet format analyzers src/<project>/<project>.csproj --diagnostics RS0016 --severity info`. When a version is released, move the lines to `PublicAPI.Shipped.txt`. A removed or changed line in `Shipped` is a breaking change.
 - JSON goes through **source-generated** `System.Text.Json` contexts (`JsonTypeInfo<T>`). No reflection-based serialization in `src/` (keep it trimming/AOT safe).
 - `ConfigureAwait(true)` where code must return to the UI thread (bridge, handlers). `ConfigureAwait(false)` for thread-pool work.
 - The core gives `InternalsVisibleTo` to the tests and both platform projects. Internal is fine for host plumbing.
@@ -91,7 +94,7 @@ The app's own switches: `--bench`, `--bench-out <file>`, `--new-instance`, `--de
 - **Open/Save dialogs** run from the window's message loop, not inside a WebView2 event handler, to avoid a hang.
 - **One window per process.** `Win32Window` enforces it.
 - **The Windows window is modelled on Photino.Native's C++, but no code is copied.** Keep it that way (license and credits in the README).
-- **Linux gaps:** the profile folder isn't set, dark theme only through `GTK_THEME`, no process ids, origin `atc-app://app/` (not `https`). External links are handled like on Windows, but that hasn't been clicked through on Linux yet.
+- **Linux:** the webview profile is in the app's data folder (`WebKit.NetworkSession`), the system theme comes from `GTK_THEME` or GNOME's `color-scheme`/`gtk-theme` settings (~10 ms, only when the theme setting is `system`), and the webview's process ids are this process's descendants in `/proc` (WebKit has no API for them). Still different from Windows: origin `atc-app://app/` (not `https`). External links are handled like on Windows, but that hasn't been clicked through on Linux yet.
 - `FileWatchServiceTests.SeveralWrites_AreReportedOnce` depends on timing and may be flaky on slow CI runners.
 - ReadyToRun (`dotnet publish sample/Atc.Desktop.WebHost.Sample -c Release -r win-x64`) gives no measurable startup gain, only a smaller install.
 - WebView2 start varies up to 4× between sessions on the same PC (total ~300 ms vs ~600 ms). Only compare variants measured back to back in the same session.
