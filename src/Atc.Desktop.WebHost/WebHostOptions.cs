@@ -35,6 +35,18 @@ public sealed class WebHostOptions
     /// <summary>Gets the initial client height in device-independent pixels.</summary>
     public int Height { get; init; } = 800;
 
+    /// <summary>
+    /// Gets where the window opens: a display (see <see cref="IHostPlatform.GetMonitors"/>), fullscreen without a frame,
+    /// and whether it shows in the taskbar. The default is centred with a normal frame.
+    /// </summary>
+    public WindowPlacement Placement { get; init; } = WindowPlacement.Default;
+
+    /// <summary>
+    /// Gets extra file folders the page can load from a second private origin (for example the document's images).
+    /// See <see cref="FrontendMount"/>. The app's own frontend is not affected.
+    /// </summary>
+    public IReadOnlyList<FrontendMount> Mounts { get; init; } = [];
+
     /// <summary>Gets the background painted before the page in light mode.</summary>
     public HostColor LightBackground { get; init; } = HostColor.White;
 

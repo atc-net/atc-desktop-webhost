@@ -9,6 +9,13 @@ internal static class BuiltInMessages
 
     internal sealed record UrlRequest(string Url);
 
+    internal sealed record CloseGuardRequest(bool Enabled);
+
+    internal sealed record PlacementRequest(
+        int? Monitor,
+        bool? Fullscreen,
+        bool? ShowInTaskbar);
+
     internal sealed record FileDialogRequest(
         string? Title,
         string? DefaultPath,

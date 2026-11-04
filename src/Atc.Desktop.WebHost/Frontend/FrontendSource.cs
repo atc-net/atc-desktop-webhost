@@ -12,6 +12,12 @@ public abstract class FrontendSource
     /// <summary>Gets the private origin, e.g. "https://app.atc-webhost.example".</summary>
     public static string Origin => "https://" + HostName;
 
+    /// <summary>The host name of the second private origin that serves <see cref="FrontendMount"/>s (Windows).</summary>
+    public const string FilesHostName = "files.atc-webhost.example";
+
+    /// <summary>Gets the origin of the mounts on Windows, "https://files.atc-webhost.example".</summary>
+    public static string FilesOrigin => "https://" + FilesHostName;
+
     /// <summary>
     /// Gets the folder on disk, or <see langword="null"/>. When set, WebView2 serves it natively with
     /// virtual host mapping (no managed code per request).
@@ -36,7 +42,11 @@ public abstract class FrontendSource
         string prefix)
         => new EmbeddedFrontendSource(assembly, prefix);
 
-    /// <summary>Opens a file.</summary>
+    /// <summary>
+    /// Opens a file. The host takes the stream and releases it when the response is sent; don't dispose it.
+    /// For files that may change while shown, return a <see cref="MemoryStream"/> so nothing stays locked
+    /// (mounts do this for you).
+    /// </summary>
     /// <param name="relativePath">The path below the root, with '/' separators, e.g. "assets/app.js".</param>
     /// <returns>The stream, or <see langword="null"/> when the file doesn't exist or is outside the root.</returns>
     public abstract Stream? TryOpen(string relativePath);

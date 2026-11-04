@@ -18,6 +18,10 @@ public sealed class WebKitGtkPlatform : IHostPlatform
         => GtkHostWindow.Origin;
 
     /// <inheritdoc />
+    public string FilesOrigin
+        => GtkHostWindow.FilesOrigin;
+
+    /// <inheritdoc />
     public bool IsSupported
         => OperatingSystem.IsLinux();
 
@@ -51,6 +55,10 @@ public sealed class WebKitGtkPlatform : IHostPlatform
     {
         // Nothing needed: the running instance presents its window itself.
     }
+
+    /// <inheritdoc />
+    public IReadOnlyList<HostMonitor> GetMonitors()
+        => GtkMonitors.GetAll();
 
     /// <inheritdoc />
     public int Run(

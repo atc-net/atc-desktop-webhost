@@ -8,6 +8,7 @@ public sealed partial class WebHostApplication
         RegisterHostHandlers();
         RegisterShellHandlers();
         RegisterWindowHandlers();
+        RegisterDialogHandlers();
         RegisterFileHandlers();
     }
 
@@ -88,6 +89,49 @@ public sealed partial class WebHostApplication
             return ValueTask.FromResult(JsonPayload.Null);
         });
 
+        // Close guard: while armed, the user's close is turned into a window.closeRequested event.
+        Bridge.Handle("window.setCloseGuard", (request, _) =>
+        {
+            closeGuard.SetArmed(request.Deserialize(BridgeJsonContext.Default.CloseGuardRequest).Enabled);
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+
+        // Sent by the host script as soon as window.closeRequested arrives: the page is alive.
+        Bridge.Handle("window.closeAck", (_, _) =>
+        {
+            closeGuard.Acknowledge();
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+
+        Bridge.Handle("window.getMonitors", (_, _) => ValueTask.FromResult(JsonPayload.From(
+            Options.Platform.GetMonitors(),
+            BridgeJsonContext.Default.IReadOnlyListHostMonitor)));
+
+        // Missing fields keep the current placement's value.
+        Bridge.Handle("window.setPlacement", (request, _) =>
+        {
+            var change = request.Deserialize(BridgeJsonContext.Default.PlacementRequest);
+            var current = placement ?? Options.Placement;
+            placement = new WindowPlacement
+            {
+                Monitor = change.Monitor ?? current.Monitor,
+                Fullscreen = change.Fullscreen ?? current.Fullscreen,
+                ShowInTaskbar = change.ShowInTaskbar ?? current.ShowInTaskbar,
+            };
+            RequireWindow().SetPlacement(placement);
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+
+        Bridge.Handle("window.close", (_, _) =>
+        {
+            closeGuard.Reset();
+            RequireWindow().Close();
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+    }
+
+    private void RegisterDialogHandlers()
+    {
         Bridge.Handle("dialog.openFile", async (request, _) =>
         {
             // Leave the webview's message callback first: a modal dialog runs its own message loop,

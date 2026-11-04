@@ -6,6 +6,7 @@ internal sealed partial class Win32Window
     private CoreWebView2Environment? environment;
     private CoreWebView2Controller? controller;
     private CoreWebView2? webView;
+    private MountTable? mounts;
 
     public void PostMessage(string json)
         => webView?.PostWebMessageAsJson(json);
@@ -80,32 +81,71 @@ internal sealed partial class Win32Window
         view.WebMessageReceived += OnWebMessageReceived;
         view.NavigationStarting += OnNavigationStarting;
         view.NewWindowRequested += OnNewWindowRequested;
+        view.ProcessFailed += (_, _) => events.OnPageUnloaded();
         view.NavigationCompleted += (_, e) => events.Mark(e.IsSuccess ? "navigationCompleted" : "navigationFailed");
         view.DOMContentLoaded += (_, _) => events.Mark("domContentLoaded");
     }
 
     private void MapFrontend(CoreWebView2 view)
     {
+        var serveFrontend = options.Frontend.FolderPath is null;
         if (options.Frontend.FolderPath is { } folder)
         {
-            // Native file serving: no managed code runs per request.
+            // Native file serving: no managed code runs per request. WebView2 then never raises
+            // WebResourceRequested for this host name, which is why mounts have their own host name.
             view.SetVirtualHostNameToFolderMapping(FrontendSource.HostName, folder, CoreWebView2HostResourceAccessKind.Allow);
-            return;
+        }
+        else
+        {
+            view.AddWebResourceRequestedFilter(FrontendSource.Origin + "/*", CoreWebView2WebResourceContext.All);
         }
 
-        view.AddWebResourceRequestedFilter(FrontendSource.Origin + "/*", CoreWebView2WebResourceContext.All);
-        view.WebResourceRequested += OnWebResourceRequested;
+        if (options.Mounts.Count > 0)
+        {
+            mounts = new MountTable(options.Mounts);
+            view.AddWebResourceRequestedFilter(FrontendSource.FilesOrigin + "/*", CoreWebView2WebResourceContext.All);
+        }
+
+        if (serveFrontend || mounts is not null)
+        {
+            view.WebResourceRequested += OnWebResourceRequested;
+        }
     }
 
+    /// <summary>One handler for both hosts: a second handler would answer the other host's requests with 404.</summary>
     private void OnWebResourceRequested(
         object? sender,
         CoreWebView2WebResourceRequestedEventArgs e)
     {
-        var path = FrontendSource.ToRelativePath(new Uri(e.Request.Uri));
+        var uri = new Uri(e.Request.Uri);
+        if (mounts is not null && string.Equals(uri.Host, FrontendSource.FilesHostName, StringComparison.OrdinalIgnoreCase))
+        {
+            var file = mounts.Open(Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/'));
+            e.Response = file is null
+                ? environment!.CreateWebResourceResponse(Content: null, 404, "Not Found", Headers: string.Empty)
+                : environment!.CreateWebResourceResponse(file.Content, 200, "OK", MountHeaders(file));
+            return;
+        }
+
+        var path = FrontendSource.ToRelativePath(uri);
         var stream = path is null ? null : options.Frontend.TryOpen(path);
         e.Response = stream is null
             ? environment!.CreateWebResourceResponse(Content: null, 404, "Not Found", Headers: string.Empty)
             : environment!.CreateWebResourceResponse(stream, 200, "OK", "Content-Type: " + ContentTypes.FromPath(path!));
+    }
+
+    /// <summary>The app's page may also fetch mounted files (it's another origin).</summary>
+    private static string MountHeaders(MountedFile file)
+    {
+        var headers = new StringBuilder()
+            .Append("Content-Type: ").Append(file.ContentType)
+            .Append("\r\nAccess-Control-Allow-Origin: ").Append(FrontendSource.Origin);
+        if (file.CacheControl is not null)
+        {
+            headers.Append("\r\nCache-Control: ").Append(file.CacheControl);
+        }
+
+        return headers.ToString();
     }
 
     private void OnWebMessageReceived(
@@ -130,19 +170,31 @@ internal sealed partial class Win32Window
         events.OnMessage(message);
     }
 
-    /// <summary>The app's page stays in the window; links to other sites open in the default browser.</summary>
-    private static void OnNavigationStarting(
+    /// <summary>
+    /// The app's page stays in the window; links to other sites open in the default browser.
+    /// A navigation within the app (a reload) replaces the page, so the old page's state is gone.
+    /// </summary>
+    private void OnNavigationStarting(
         object? sender,
         CoreWebView2NavigationStartingEventArgs e)
     {
         if (FrontendSource.IsOnOrigin(e.Uri))
         {
+            events.OnPageUnloaded();
             return;
         }
 
         e.Cancel = true;
-        ExternalLinks.TryOpen(e.Uri);
+        if (!IsOnFilesOrigin(e.Uri))
+        {
+            ExternalLinks.TryOpen(e.Uri);
+        }
     }
+
+    // A mounted page may not replace the app's page, and its address means nothing to a browser.
+    private static bool IsOnFilesOrigin(string address)
+        => Uri.TryCreate(address, UriKind.Absolute, out var uri) &&
+           string.Equals(uri.Host, FrontendSource.FilesHostName, StringComparison.OrdinalIgnoreCase);
 
     private static void OnNewWindowRequested(
         object? sender,

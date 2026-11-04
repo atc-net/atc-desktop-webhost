@@ -38,4 +38,10 @@ public sealed class HostWindowOptions
 
     /// <summary>Gets the path of a window icon (.ico on Windows, .png on Linux), or <see langword="null"/> for the exe icon.</summary>
     public string? IconPath { get; init; }
+
+    /// <summary>Gets where the window opens. Applied before the window is shown, so it doesn't jump.</summary>
+    public WindowPlacement Placement { get; init; } = WindowPlacement.Default;
+
+    /// <summary>Gets the extra file folders served on the files origin. See <see cref="FrontendMount"/>.</summary>
+    public IReadOnlyList<FrontendMount> Mounts { get; init; } = [];
 }

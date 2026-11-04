@@ -58,11 +58,49 @@ public sealed class WebHostApplicationTests : IDisposable
         JsonNode.Parse(sent.Single())!["error"]!["code"]!.GetValue<string>().Should().Be("forbidden");
     }
 
+    [Fact]
+    public void UserClose_WithoutCloseGuard_Closes()
+        => ((IHostWindowEvents)app).OnCloseRequested().Should().BeTrue();
+
+    [Fact]
+    public async Task UserClose_WithCloseGuard_KeepsTheWindowAndAsksThePage()
+    {
+        await app.Bridge.DispatchAsync(Request("window.setCloseGuard", new JsonObject { ["enabled"] = true }));
+        await app.Bridge.DispatchAsync(Request("host.ready", payload: null));
+        sent.Clear();
+
+        var closes = ((IHostWindowEvents)app).OnCloseRequested();
+
+        closes.Should().BeFalse();
+        JsonNode.Parse(sent.Single())!["type"]!.GetValue<string>().Should().Be("window.closeRequested");
+    }
+
+    [Fact]
+    public async Task UserClose_AfterThePageUnloaded_Closes()
+    {
+        await app.Bridge.DispatchAsync(Request("window.setCloseGuard", new JsonObject { ["enabled"] = true }));
+
+        ((IHostWindowEvents)app).OnPageUnloaded();
+
+        ((IHostWindowEvents)app).OnCloseRequested().Should().BeTrue();
+    }
+
     public void Dispose()
     {
         app.Dispose();
         Directory.Delete(folder, recursive: true);
     }
+
+    private static string Request(
+        string type,
+        JsonNode? payload)
+        => new JsonObject
+        {
+            ["kind"] = "request",
+            ["id"] = 1,
+            ["type"] = type,
+            ["payload"] = payload,
+        }.ToJsonString();
 
     private static string LoadRequest(string path)
         => new JsonObject

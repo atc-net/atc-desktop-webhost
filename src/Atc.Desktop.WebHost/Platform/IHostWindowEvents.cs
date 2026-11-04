@@ -27,6 +27,16 @@ public interface IHostWindowEvents
     /// <param name="message">The message text.</param>
     void OnMessage(string message);
 
+    /// <summary>
+    /// The user tries to close the window (title-bar button, Alt+F4, taskbar). Not called for
+    /// <see cref="IHostWindow.Close"/>, which always closes.
+    /// </summary>
+    /// <returns><see langword="true"/> to close; <see langword="false"/> to keep the window open.</returns>
+    bool OnCloseRequested();
+
+    /// <summary>The page is gone: it reloaded, navigated within the app, or its web process failed.</summary>
+    void OnPageUnloaded();
+
     /// <summary>The window is closing. The webview may already be gone.</summary>
     void OnClosed();
 }

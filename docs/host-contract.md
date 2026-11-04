@@ -9,12 +9,21 @@ Status: **draft**. It describes what the host does today. Points marked 🟡 are
 | | Windows (WebView2) | Linux (WebKitGTK) |
 |---|---|---|
 | App files (the frontend) | `https://app.atc-webhost.example/` | `atc-app://app/` |
-| Files next to the document (images) | 🟡 not served yet | 🟡 not served yet |
+| Mounts: extra folders, e.g. the document's images | `https://files.atc-webhost.example/<mount>/` | `atc-app://files/<mount>/` |
 
 - `.example` is a reserved top-level domain, so the address can never be a real site.
 - The frontend is served from a folder (fastest) or from embedded resources. Either way, the page never runs from `file://`, so `fetch` and ES modules work.
 - Navigation away from the app, and links that would open a new window, open in the system browser instead (http, https and mailto only; other links are ignored).
-- 🟡 **Proposed:** the same `https://` addresses on both platforms, with a second host for the document's folder (for example `https://doc.atc-webhost.example/`). On Linux this needs WebKitGTK to serve `https` for a custom host, which still has to be tried.
+- 🟡 **Proposed:** the same `https://` addresses on both platforms. On Linux this needs WebKitGTK to serve `https` for a custom host, which still has to be tried.
+
+### Mounts
+
+An app adds folders with `WebHostOptions.Mounts`, for example `new FrontendMount("doc", FrontendSource.FromFolder(folder))`. The page finds the address in `atcHost.boot.filesOrigin`: `${boot.filesOrigin}/doc/images/logo.png`.
+
+- Mounts have their own origin because WebView2 serves a folder-mapped host entirely natively: a request handler is never called for it. The app's frontend keeps that fast path.
+- Mounted files are read into memory for each request, so nothing stays locked. They are sent with `Cache-Control: no-cache` (change it with `FrontendMount.CacheControl`) and `Access-Control-Allow-Origin` for the app's origin, so the page can also `fetch` them.
+- Paths with `..` segments, unknown mounts and missing files get 404.
+- A mounted page can be shown in an iframe, but it is another origin: it talks to the app's page with `postMessage`, never to the host. Messages to the host are only accepted from the app's own page.
 
 ## 2. `window.atcHost`
 
@@ -31,6 +40,7 @@ interface AtcHost {
 }
 ```
 
+- Only the app's page (the top frame) gets `atcHost` and the boot object. Iframes never do, so a mounted page or another site can't see the settings, file paths or document. Iframes talk to the app's page with `postMessage`.
 - `ready()` is called automatically on `DOMContentLoaded`. Call it earlier if the page subscribes earlier.
 - A failed request rejects with an `Error` that has a `code` (see section 5).
 - Aborting the `signal` rejects the promise and tells the host to cancel the handler.
@@ -45,6 +55,7 @@ Available as `atcHost.boot` before the first page script, so the first paint nee
 | `platform` | `"webview2"` \| `"webkitgtk"` | Same as `atcHost.platform` |
 | `theme` | `"light"` \| `"dark"` | Resolved theme (the `theme` setting, or the OS when it's `system`). The window was painted in this theme's background colour |
 | `origin` | string | The page's origin: `https://app.atc-webhost.example` on Windows, `atc-app://app` on Linux |
+| `filesOrigin` | string | Where mounts are served: `https://files.atc-webhost.example` on Windows, `atc-app://files` on Linux |
 | `bench` | boolean | Started with `--bench`: the page should report first paint and do nothing else |
 | `files` | string[] | Files from the command line, full paths |
 | `settings` | object | The app's settings (JSON object, app-defined) |
@@ -79,6 +90,11 @@ All messages are JSON text.
 | `settings.get` | – | The settings object |
 | `settings.set` | A partial settings object (merged) | The merged settings. Also sends `settings.changed` |
 | `window.setTitle` | `{ title }` | `null` |
+| `window.setCloseGuard` | `{ enabled }` | `null`. While enabled, the user's close sends `window.closeRequested` instead of closing (see "Unsaved work") |
+| `window.close` | – | `null`. Closes the window, also when the close guard is on |
+| `window.getMonitors` | – | `[{ number, bounds: { x, y, width, height }, workArea, isPrimary, scale }]`, numbered left to right, physical pixels |
+| `window.setPlacement` | `{ monitor?, fullscreen?, showInTaskbar? }` | `null`. Moves the window; fields left out keep their value. Linux: only fullscreen on a display (Wayland can't place a normal window or hide it from the taskbar) |
+| `window.closeAck` | – | `null`. Sent by the host script when `window.closeRequested` arrives; pages don't send it |
 | `dialog.openFile` | `{ title?, defaultPath?, filters?: [{ name, patterns }] }` | `{ path }`, `path` is `null` when cancelled |
 | `dialog.saveFile` | Same as `dialog.openFile` | `{ path }` |
 | `document.load` | `{ path }` | The app's document, or `{ path, error }` if it couldn't be read |
@@ -98,6 +114,28 @@ An app can allow more with `WebHostApplication.GrantFileAccess(path)`, for examp
 | `settings.changed` | The merged settings | After `settings.set` |
 | `document.opened` | The app's document | A second launch handed over a file |
 | `file.changed` | `{ path, kind: "changed" \| "deleted" }` | A watched file changed. An atomic save (write to a temp file, rename over) is reported as `changed` |
+| `window.closeRequested` | `null` | The user tried to close the window while the close guard is on |
+
+### Unsaved work (close guard)
+
+A page with unsaved work calls `request("window.setCloseGuard", { enabled: true })`, and turns it off again when the work is saved. While it's on:
+
+1. The user closes the window (title-bar button, Alt+F4, the taskbar). The window stays open and the page gets `window.closeRequested`.
+2. The page asks its own question ("Save changes?") and, if the answer is to close, calls `request("window.close")`.
+
+```js
+atcHost.on("window.closeRequested", async () => {
+  if (await askSaveDiscardOrCancel() !== "cancel") atcHost.request("window.close");
+});
+```
+
+**The handler must not block the page.** Use an in-page dialog, not `confirm()` or `alert()`. While a native dialog is open the page's script is paused, so it can't acknowledge the user's next close attempt. The host then treats the page as hung and closes the window, with the unsaved work still in it. Also expect `window.closeRequested` again while your dialog is already open.
+
+The window can always be closed, even when the page has hung:
+- The host script answers `window.closeRequested` at once with `window.closeAck`. If no answer comes, the user's next close attempt after 3 seconds closes the window.
+- A page that turned the guard on without listening for `window.closeRequested` is closed at once.
+- A reload, a navigation within the app or a crashed web process turns the guard off.
+- Closing from .NET (`IHostWindow.Close()`) always closes.
 
 Apps add their own requests and events with `Bridge.Handle` and `Bridge.Emit`. Use a prefix per app (for example `md.render`) so names don't clash with the built-in ones.
 

@@ -12,6 +12,12 @@ public interface IHostPlatform
     /// <summary>Gets the origin the page is served from, e.g. "https://app.atc-webhost.example". The page sees it as <c>atcHost.boot.origin</c>.</summary>
     string Origin { get; }
 
+    /// <summary>
+    /// Gets the origin <see cref="FrontendMount"/>s are served from, e.g. "https://files.atc-webhost.example".
+    /// The page sees it as <c>atcHost.boot.filesOrigin</c>.
+    /// </summary>
+    string FilesOrigin { get; }
+
     /// <summary>Gets a value indicating whether this platform works on the current OS.</summary>
     bool IsSupported { get; }
 
@@ -24,6 +30,13 @@ public interface IHostPlatform
     /// window may come to the front (Windows only allows that when the sender permits it).
     /// </summary>
     void AllowActivationHandOff();
+
+    /// <summary>
+    /// Lists the displays, numbered left to right. Works before the window exists, so an app can pick a display
+    /// for <see cref="HostWindowOptions.Placement"/> (for example the widest one).
+    /// </summary>
+    /// <returns>The displays; empty when unknown.</returns>
+    IReadOnlyList<HostMonitor> GetMonitors();
 
     /// <summary>Creates the window and runs its message loop until it closes. Blocks the calling thread.</summary>
     /// <param name="options">What to show.</param>

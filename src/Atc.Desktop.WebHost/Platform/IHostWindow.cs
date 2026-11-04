@@ -33,4 +33,8 @@ public interface IHostWindow
     /// <summary>Gets the ids of the webview's own processes (browser, renderer, GPU, ...), for memory reports.</summary>
     /// <returns>The process ids; empty when unknown.</returns>
     IReadOnlyList<int> GetBrowserProcessIds();
+
+    /// <summary>Moves the window to a display, into or out of fullscreen. See <see cref="WindowPlacement"/>.</summary>
+    /// <param name="placement">Where the window goes.</param>
+    void SetPlacement(WindowPlacement placement);
 }

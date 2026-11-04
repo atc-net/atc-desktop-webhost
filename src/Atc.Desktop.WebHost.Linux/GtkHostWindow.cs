@@ -18,6 +18,9 @@ internal sealed class GtkHostWindow : IHostWindow
     /// <summary>The page's origin.</summary>
     public const string Origin = Scheme + "://app";
 
+    /// <summary>The origin mounts are served from.</summary>
+    public const string FilesOrigin = Scheme + "://files";
+
     private const string OriginPrefix = Origin + "/";
 
     private readonly HostWindowOptions options;
@@ -25,7 +28,9 @@ internal sealed class GtkHostWindow : IHostWindow
     private readonly Gtk.Application application;
     private Gtk.ApplicationWindow? window;
     private WebKit.WebView? webView;
+    private MountTable? mounts;
     private bool isClosed;
+    private bool closeFromCode;
 
     private GtkHostWindow(
         HostWindowOptions options,
@@ -70,7 +75,11 @@ internal sealed class GtkHostWindow : IHostWindow
         => window?.Present();
 
     public void Close()
-        => window?.Close();
+    {
+        // Closing from code skips the close guard; only the user's close asks the page.
+        closeFromCode = true;
+        window?.Close();
+    }
 
     public async Task<string?> ShowOpenFileDialogAsync(
         FileDialogOptions options)
@@ -109,6 +118,36 @@ internal sealed class GtkHostWindow : IHostWindow
 
     public IReadOnlyList<int> GetBrowserProcessIds()
         => ProcessTree.GetDescendants(Environment.ProcessId);
+
+    /// <summary>
+    /// GTK 4 can go fullscreen on a chosen display. It can't position a normal window (Wayland doesn't allow it)
+    /// or hide it from the taskbar, so for a normal window the display number and the taskbar flag are ignored.
+    /// </summary>
+    /// <param name="placement">Where the window goes.</param>
+    public void SetPlacement(WindowPlacement placement)
+    {
+        ArgumentNullException.ThrowIfNull(placement);
+
+        if (window is null)
+        {
+            return;
+        }
+
+        if (!placement.Fullscreen)
+        {
+            window.Unfullscreen();
+            return;
+        }
+
+        if (GtkMonitors.Find(placement.Monitor) is { } monitor)
+        {
+            window.FullscreenOnMonitor(monitor);
+        }
+        else
+        {
+            window.Fullscreen();
+        }
+    }
 
     /// <summary>GApplication ids must look like "org.example.App": letters, digits, '_' and at least one dot.</summary>
     /// <param name="appId">The app id.</param>
@@ -164,8 +203,19 @@ internal sealed class GtkHostWindow : IHostWindow
         window = Gtk.ApplicationWindow.New(application);
         window.SetTitle(options.Title);
         window.SetDefaultSize(options.Width, options.Height);
+        if (!options.Placement.IsDefault)
+        {
+            SetPlacement(options.Placement);
+        }
+
         window.OnCloseRequest += (_, _) =>
         {
+            // Returning true keeps the window open.
+            if (!closeFromCode && !events.OnCloseRequested())
+            {
+                return true;
+            }
+
             isClosed = true;
             events.OnClosed();
             return false;
@@ -191,6 +241,14 @@ internal sealed class GtkHostWindow : IHostWindow
             }
         };
         webView.OnDecidePolicy += (_, e) => OnDecidePolicy(e.Decision, e.DecisionType);
+        webView.OnLoadChanged += (_, e) =>
+        {
+            if (e.LoadEvent == WebKit.LoadEvent.Started)
+            {
+                events.OnPageUnloaded();
+            }
+        };
+        webView.OnWebProcessTerminated += (_, _) => events.OnPageUnloaded();
 
         window.SetChild(webView);
         window.Present();
@@ -218,6 +276,12 @@ internal sealed class GtkHostWindow : IHostWindow
     private static bool IsOnOrigin(string? uri)
         => uri is not null && uri.StartsWith(OriginPrefix, StringComparison.Ordinal);
 
+    private static bool IsOnFilesOrigin(string? uri)
+        => uri is not null &&
+           uri.Length > FilesOrigin.Length &&
+           uri.StartsWith(FilesOrigin, StringComparison.Ordinal) &&
+           uri[FilesOrigin.Length] == '/';
+
     /// <summary>The app's page stays in the window; links to other sites open in the default browser.</summary>
     /// <returns>True when the navigation was handled here (ignored).</returns>
     private static bool OnDecidePolicy(
@@ -231,13 +295,19 @@ internal sealed class GtkHostWindow : IHostWindow
         }
 
         var uri = navigation.GetNavigationAction().GetRequest().GetUri();
-        if (type == WebKit.PolicyDecisionType.NavigationAction && IsOnOrigin(uri))
+        var isMount = IsOnFilesOrigin(uri);
+        if (type == WebKit.PolicyDecisionType.NavigationAction && (IsOnOrigin(uri) || isMount))
         {
+            // The app's page, or a mounted page in an iframe. Messages still only come from the app's page.
             return false;
         }
 
         decision.Ignore();
-        ExternalLinks.TryOpen(uri);
+        if (!isMount)
+        {
+            ExternalLinks.TryOpen(uri);
+        }
+
         return true;
     }
 
@@ -264,32 +334,74 @@ internal sealed class GtkHostWindow : IHostWindow
         security.RegisterUriSchemeAsCorsEnabled(Scheme);
     }
 
+    /// <summary>Serves the app's frontend (<c>atc-app://app/</c>) and the mounts (<c>atc-app://files/</c>).</summary>
     private void OnSchemeRequest(WebKit.URISchemeRequest request)
     {
-        var path = request.GetPath().TrimStart('/');
+        var path = Uri.UnescapeDataString(request.GetPath()).TrimStart('/');
+        if (IsOnFilesOrigin(request.GetUri()))
+        {
+            mounts ??= new MountTable(options.Mounts);
+            var file = mounts.Open(path);
+            if (file is null)
+            {
+                Respond(request, [], "text/plain", status: 404, cacheControl: null, allowAppOrigin: false);
+                return;
+            }
+
+            using (file.Content)
+            {
+                Respond(request, file.Content.ToArray(), file.ContentType, status: 200, file.CacheControl, allowAppOrigin: true);
+            }
+
+            return;
+        }
+
         if (path.Length == 0)
         {
             path = "index.html";
         }
 
         using var stream = options.Frontend.TryOpen(path);
-        byte[] content;
-        string contentType;
         if (stream is null)
         {
-            content = [];
-            contentType = "text/plain";
-        }
-        else
-        {
-            using var memory = new MemoryStream();
-            stream.CopyTo(memory);
-            content = memory.ToArray();
-            contentType = ContentTypes.FromPath(path);
+            Respond(request, [], "text/plain", status: 404, cacheControl: null, allowAppOrigin: false);
+            return;
         }
 
+        using var memory = new MemoryStream();
+        stream.CopyTo(memory);
+        Respond(request, memory.ToArray(), ContentTypes.FromPath(path), status: 200, cacheControl: null, allowAppOrigin: false);
+    }
+
+    private static void Respond(
+        WebKit.URISchemeRequest request,
+        byte[] content,
+        string contentType,
+        uint status,
+        string? cacheControl,
+        bool allowAppOrigin)
+    {
         using var bytes = GLib.Bytes.New(content);
         using var input = Gio.MemoryInputStream.NewFromBytes(bytes);
-        request.Finish(input, content.Length, contentType);
+        using var response = WebKit.URISchemeResponse.New(input, content.Length);
+        response.SetStatus(status, reasonPhrase: null);
+        response.SetContentType(contentType);
+        if (cacheControl is not null || allowAppOrigin)
+        {
+            var headers = Soup.MessageHeaders.New(Soup.MessageHeadersType.Response);
+            if (cacheControl is not null)
+            {
+                headers.Append("Cache-Control", cacheControl);
+            }
+
+            if (allowAppOrigin)
+            {
+                headers.Append("Access-Control-Allow-Origin", Origin);
+            }
+
+            response.SetHttpHeaders(headers);
+        }
+
+        request.FinishWithResponse(response);
     }
 }

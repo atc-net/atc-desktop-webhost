@@ -29,6 +29,17 @@ Atc.Desktop.WebHost.Diagnostics.StartupClock.SinceProcessStart() -> System.Colle
 Atc.Desktop.WebHost.Diagnostics.StartupClock.StartupClock() -> void
 Atc.Desktop.WebHost.DocumentLoader
 Atc.Desktop.WebHost.Frontend.ContentTypes
+Atc.Desktop.WebHost.Frontend.FrontendMount
+Atc.Desktop.WebHost.Frontend.FrontendMount.<Clone>$() -> Atc.Desktop.WebHost.Frontend.FrontendMount!
+Atc.Desktop.WebHost.Frontend.FrontendMount.CacheControl.get -> string?
+Atc.Desktop.WebHost.Frontend.FrontendMount.CacheControl.init -> void
+Atc.Desktop.WebHost.Frontend.FrontendMount.Deconstruct(out string! Name, out Atc.Desktop.WebHost.Frontend.FrontendSource! Source) -> void
+Atc.Desktop.WebHost.Frontend.FrontendMount.Equals(Atc.Desktop.WebHost.Frontend.FrontendMount? other) -> bool
+Atc.Desktop.WebHost.Frontend.FrontendMount.FrontendMount(string! Name, Atc.Desktop.WebHost.Frontend.FrontendSource! Source) -> void
+Atc.Desktop.WebHost.Frontend.FrontendMount.Name.get -> string!
+Atc.Desktop.WebHost.Frontend.FrontendMount.Name.init -> void
+Atc.Desktop.WebHost.Frontend.FrontendMount.Source.get -> Atc.Desktop.WebHost.Frontend.FrontendSource!
+Atc.Desktop.WebHost.Frontend.FrontendMount.Source.init -> void
 Atc.Desktop.WebHost.Frontend.FrontendSource
 Atc.Desktop.WebHost.Frontend.FrontendSource.FrontendSource() -> void
 Atc.Desktop.WebHost.Hosting.HostPaths
@@ -71,6 +82,34 @@ Atc.Desktop.WebHost.Platform.HostColor.HostColor(byte R, byte G, byte B) -> void
 Atc.Desktop.WebHost.Platform.HostColor.R.get -> byte
 Atc.Desktop.WebHost.Platform.HostColor.R.init -> void
 Atc.Desktop.WebHost.Platform.HostColor.ToCss() -> string!
+Atc.Desktop.WebHost.Platform.HostMonitor
+Atc.Desktop.WebHost.Platform.HostMonitor.<Clone>$() -> Atc.Desktop.WebHost.Platform.HostMonitor!
+Atc.Desktop.WebHost.Platform.HostMonitor.Bounds.get -> Atc.Desktop.WebHost.Platform.HostRect
+Atc.Desktop.WebHost.Platform.HostMonitor.Bounds.init -> void
+Atc.Desktop.WebHost.Platform.HostMonitor.Deconstruct(out int Number, out Atc.Desktop.WebHost.Platform.HostRect Bounds, out Atc.Desktop.WebHost.Platform.HostRect WorkArea, out bool IsPrimary, out double Scale) -> void
+Atc.Desktop.WebHost.Platform.HostMonitor.Equals(Atc.Desktop.WebHost.Platform.HostMonitor? other) -> bool
+Atc.Desktop.WebHost.Platform.HostMonitor.HostMonitor(int Number, Atc.Desktop.WebHost.Platform.HostRect Bounds, Atc.Desktop.WebHost.Platform.HostRect WorkArea, bool IsPrimary, double Scale) -> void
+Atc.Desktop.WebHost.Platform.HostMonitor.IsPrimary.get -> bool
+Atc.Desktop.WebHost.Platform.HostMonitor.IsPrimary.init -> void
+Atc.Desktop.WebHost.Platform.HostMonitor.Number.get -> int
+Atc.Desktop.WebHost.Platform.HostMonitor.Number.init -> void
+Atc.Desktop.WebHost.Platform.HostMonitor.Scale.get -> double
+Atc.Desktop.WebHost.Platform.HostMonitor.Scale.init -> void
+Atc.Desktop.WebHost.Platform.HostMonitor.WorkArea.get -> Atc.Desktop.WebHost.Platform.HostRect
+Atc.Desktop.WebHost.Platform.HostMonitor.WorkArea.init -> void
+Atc.Desktop.WebHost.Platform.HostRect
+Atc.Desktop.WebHost.Platform.HostRect.Deconstruct(out int X, out int Y, out int Width, out int Height) -> void
+Atc.Desktop.WebHost.Platform.HostRect.Equals(Atc.Desktop.WebHost.Platform.HostRect other) -> bool
+Atc.Desktop.WebHost.Platform.HostRect.Height.get -> int
+Atc.Desktop.WebHost.Platform.HostRect.Height.init -> void
+Atc.Desktop.WebHost.Platform.HostRect.HostRect() -> void
+Atc.Desktop.WebHost.Platform.HostRect.HostRect(int X, int Y, int Width, int Height) -> void
+Atc.Desktop.WebHost.Platform.HostRect.Width.get -> int
+Atc.Desktop.WebHost.Platform.HostRect.Width.init -> void
+Atc.Desktop.WebHost.Platform.HostRect.X.get -> int
+Atc.Desktop.WebHost.Platform.HostRect.X.init -> void
+Atc.Desktop.WebHost.Platform.HostRect.Y.get -> int
+Atc.Desktop.WebHost.Platform.HostRect.Y.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions
 Atc.Desktop.WebHost.Platform.HostWindowOptions.AdditionalBrowserArguments.get -> string?
 Atc.Desktop.WebHost.Platform.HostWindowOptions.AdditionalBrowserArguments.init -> void
@@ -93,12 +132,18 @@ Atc.Desktop.WebHost.Platform.HostWindowOptions.IconPath.get -> string?
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IconPath.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IsDark.get -> bool
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IsDark.init -> void
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Mounts.get -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Frontend.FrontendMount!>!
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Mounts.init -> void
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Placement.get -> Atc.Desktop.WebHost.Platform.WindowPlacement!
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Placement.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Title.get -> string!
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Title.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Width.get -> int
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Width.init -> void
 Atc.Desktop.WebHost.Platform.IHostPlatform
 Atc.Desktop.WebHost.Platform.IHostPlatform.AllowActivationHandOff() -> void
+Atc.Desktop.WebHost.Platform.IHostPlatform.FilesOrigin.get -> string!
+Atc.Desktop.WebHost.Platform.IHostPlatform.GetMonitors() -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Platform.HostMonitor!>!
 Atc.Desktop.WebHost.Platform.IHostPlatform.IsSupported.get -> bool
 Atc.Desktop.WebHost.Platform.IHostPlatform.IsSystemDarkTheme() -> bool
 Atc.Desktop.WebHost.Platform.IHostPlatform.Name.get -> string!
@@ -109,6 +154,7 @@ Atc.Desktop.WebHost.Platform.IHostWindow.BringToFront() -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.Close() -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.GetBrowserProcessIds() -> System.Collections.Generic.IReadOnlyList<int>!
 Atc.Desktop.WebHost.Platform.IHostWindow.PostMessage(string! json) -> void
+Atc.Desktop.WebHost.Platform.IHostWindow.SetPlacement(Atc.Desktop.WebHost.Platform.WindowPlacement! placement) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.SetTitle(string! title) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.ShowOpenFileDialogAsync(Atc.Desktop.WebHost.Platform.FileDialogOptions! options) -> System.Threading.Tasks.Task<string?>!
 Atc.Desktop.WebHost.Platform.IHostWindow.ShowSaveFileDialogAsync(Atc.Desktop.WebHost.Platform.FileDialogOptions! options) -> System.Threading.Tasks.Task<string?>!
@@ -116,8 +162,19 @@ Atc.Desktop.WebHost.Platform.IHostWindowEvents
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.CreateDocumentScriptAsync() -> System.Threading.Tasks.ValueTask<string!>
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.Mark(string! name) -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnClosed() -> void
+Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnCloseRequested() -> bool
+Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnPageUnloaded() -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnMessage(string! message) -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnWindowCreated(Atc.Desktop.WebHost.Platform.IHostWindow! window, System.Threading.SynchronizationContext! uiContext) -> void
+Atc.Desktop.WebHost.Platform.WindowPlacement
+Atc.Desktop.WebHost.Platform.WindowPlacement.Fullscreen.get -> bool
+Atc.Desktop.WebHost.Platform.WindowPlacement.Fullscreen.init -> void
+Atc.Desktop.WebHost.Platform.WindowPlacement.IsDefault.get -> bool
+Atc.Desktop.WebHost.Platform.WindowPlacement.Monitor.get -> int?
+Atc.Desktop.WebHost.Platform.WindowPlacement.Monitor.init -> void
+Atc.Desktop.WebHost.Platform.WindowPlacement.ShowInTaskbar.get -> bool
+Atc.Desktop.WebHost.Platform.WindowPlacement.ShowInTaskbar.init -> void
+Atc.Desktop.WebHost.Platform.WindowPlacement.WindowPlacement() -> void
 Atc.Desktop.WebHost.WebHostApplication
 Atc.Desktop.WebHost.WebHostApplication.Bridge.get -> Atc.Desktop.WebHost.Bridge.WebBridge!
 Atc.Desktop.WebHost.WebHostApplication.CommandLine.get -> Atc.Desktop.WebHost.WebHostCommandLine!
@@ -166,8 +223,12 @@ Atc.Desktop.WebHost.WebHostOptions.LightBackground.get -> Atc.Desktop.WebHost.Pl
 Atc.Desktop.WebHost.WebHostOptions.LightBackground.init -> void
 Atc.Desktop.WebHost.WebHostOptions.LoadDocument.get -> Atc.Desktop.WebHost.DocumentLoader?
 Atc.Desktop.WebHost.WebHostOptions.LoadDocument.init -> void
+Atc.Desktop.WebHost.WebHostOptions.Mounts.get -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Frontend.FrontendMount!>!
+Atc.Desktop.WebHost.WebHostOptions.Mounts.init -> void
 Atc.Desktop.WebHost.WebHostOptions.OpenFileFilters.get -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Platform.FileDialogFilter!>!
 Atc.Desktop.WebHost.WebHostOptions.OpenFileFilters.init -> void
+Atc.Desktop.WebHost.WebHostOptions.Placement.get -> Atc.Desktop.WebHost.Platform.WindowPlacement!
+Atc.Desktop.WebHost.WebHostOptions.Placement.init -> void
 Atc.Desktop.WebHost.WebHostOptions.Platform.get -> Atc.Desktop.WebHost.Platform.IHostPlatform!
 Atc.Desktop.WebHost.WebHostOptions.Platform.init -> void
 Atc.Desktop.WebHost.WebHostOptions.RestrictFileAccess.get -> bool
@@ -181,14 +242,22 @@ Atc.Desktop.WebHost.WebHostOptions.Vendor.init -> void
 Atc.Desktop.WebHost.WebHostOptions.WebHostOptions() -> void
 Atc.Desktop.WebHost.WebHostOptions.Width.get -> int
 Atc.Desktop.WebHost.WebHostOptions.Width.init -> void
+const Atc.Desktop.WebHost.Frontend.FrontendSource.FilesHostName = "files.atc-webhost.example" -> string!
 const Atc.Desktop.WebHost.Frontend.FrontendSource.HostName = "app.atc-webhost.example" -> string!
 const Atc.Desktop.WebHost.Hosting.HostPaths.PortableFlagFileName = "portable.flag" -> string!
 override Atc.Desktop.WebHost.Bridge.JsonPayload.ToString() -> string!
+override Atc.Desktop.WebHost.Frontend.FrontendMount.Equals(object? obj) -> bool
+override Atc.Desktop.WebHost.Frontend.FrontendMount.GetHashCode() -> int
+override Atc.Desktop.WebHost.Frontend.FrontendMount.ToString() -> string!
 override Atc.Desktop.WebHost.Platform.FileDialogFilter.Equals(object? obj) -> bool
 override Atc.Desktop.WebHost.Platform.FileDialogFilter.GetHashCode() -> int
 override Atc.Desktop.WebHost.Platform.FileDialogFilter.ToString() -> string!
 override Atc.Desktop.WebHost.Platform.HostColor.GetHashCode() -> int
 override Atc.Desktop.WebHost.Platform.HostColor.ToString() -> string!
+override Atc.Desktop.WebHost.Platform.HostMonitor.Equals(object? obj) -> bool
+override Atc.Desktop.WebHost.Platform.HostMonitor.GetHashCode() -> int
+override Atc.Desktop.WebHost.Platform.HostMonitor.ToString() -> string!
+override Atc.Desktop.WebHost.Platform.HostRect.GetHashCode() -> int
 static Atc.Desktop.WebHost.Bridge.JsonPayload.From(System.Text.Json.Nodes.JsonNode? node) -> Atc.Desktop.WebHost.Bridge.JsonPayload!
 static Atc.Desktop.WebHost.Bridge.JsonPayload.From<T>(T value, System.Text.Json.Serialization.Metadata.JsonTypeInfo<T>! typeInfo) -> Atc.Desktop.WebHost.Bridge.JsonPayload!
 static Atc.Desktop.WebHost.Bridge.JsonPayload.FromRawJson(string! json) -> Atc.Desktop.WebHost.Bridge.JsonPayload!
@@ -196,6 +265,9 @@ static Atc.Desktop.WebHost.Bridge.JsonPayload.FromString(string? value) -> Atc.D
 static Atc.Desktop.WebHost.Bridge.JsonPayload.Null.get -> Atc.Desktop.WebHost.Bridge.JsonPayload!
 static Atc.Desktop.WebHost.Diagnostics.StartupClock.Shared.get -> Atc.Desktop.WebHost.Diagnostics.StartupClock!
 static Atc.Desktop.WebHost.Frontend.ContentTypes.FromPath(string! path) -> string!
+static Atc.Desktop.WebHost.Frontend.FrontendMount.operator !=(Atc.Desktop.WebHost.Frontend.FrontendMount? left, Atc.Desktop.WebHost.Frontend.FrontendMount? right) -> bool
+static Atc.Desktop.WebHost.Frontend.FrontendMount.operator ==(Atc.Desktop.WebHost.Frontend.FrontendMount? left, Atc.Desktop.WebHost.Frontend.FrontendMount? right) -> bool
+static Atc.Desktop.WebHost.Frontend.FrontendSource.FilesOrigin.get -> string!
 static Atc.Desktop.WebHost.Frontend.FrontendSource.FromEmbeddedResources(System.Reflection.Assembly! assembly, string! prefix) -> Atc.Desktop.WebHost.Frontend.FrontendSource!
 static Atc.Desktop.WebHost.Frontend.FrontendSource.FromFolder(string! folder) -> Atc.Desktop.WebHost.Frontend.FrontendSource!
 static Atc.Desktop.WebHost.Frontend.FrontendSource.IsOnOrigin(string? address) -> bool
@@ -210,9 +282,16 @@ static Atc.Desktop.WebHost.Platform.HostColor.operator !=(Atc.Desktop.WebHost.Pl
 static Atc.Desktop.WebHost.Platform.HostColor.operator ==(Atc.Desktop.WebHost.Platform.HostColor left, Atc.Desktop.WebHost.Platform.HostColor right) -> bool
 static Atc.Desktop.WebHost.Platform.HostColor.Parse(string! hex) -> Atc.Desktop.WebHost.Platform.HostColor
 static Atc.Desktop.WebHost.Platform.HostColor.White.get -> Atc.Desktop.WebHost.Platform.HostColor
+static Atc.Desktop.WebHost.Platform.HostMonitor.operator !=(Atc.Desktop.WebHost.Platform.HostMonitor? left, Atc.Desktop.WebHost.Platform.HostMonitor? right) -> bool
+static Atc.Desktop.WebHost.Platform.HostMonitor.operator ==(Atc.Desktop.WebHost.Platform.HostMonitor? left, Atc.Desktop.WebHost.Platform.HostMonitor? right) -> bool
+static Atc.Desktop.WebHost.Platform.HostRect.operator !=(Atc.Desktop.WebHost.Platform.HostRect left, Atc.Desktop.WebHost.Platform.HostRect right) -> bool
+static Atc.Desktop.WebHost.Platform.HostRect.operator ==(Atc.Desktop.WebHost.Platform.HostRect left, Atc.Desktop.WebHost.Platform.HostRect right) -> bool
+static Atc.Desktop.WebHost.Platform.WindowPlacement.Default.get -> Atc.Desktop.WebHost.Platform.WindowPlacement!
 static Atc.Desktop.WebHost.WebHostApplication.Clock.get -> Atc.Desktop.WebHost.Diagnostics.StartupClock!
 static Atc.Desktop.WebHost.WebHostCommandLine.Parse(System.Collections.Generic.IReadOnlyList<string!>! args) -> Atc.Desktop.WebHost.WebHostCommandLine!
 virtual Atc.Desktop.WebHost.Bridge.BridgeHandler.Invoke(Atc.Desktop.WebHost.Bridge.BridgeRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Atc.Desktop.WebHost.Bridge.JsonPayload!>
 virtual Atc.Desktop.WebHost.DocumentLoader.Invoke(string! path, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Atc.Desktop.WebHost.Bridge.JsonPayload!>
 virtual Atc.Desktop.WebHost.Frontend.FrontendSource.FolderPath.get -> string?
 ~override Atc.Desktop.WebHost.Platform.HostColor.Equals(object obj) -> bool
+~override Atc.Desktop.WebHost.Platform.HostRect.Equals(object obj) -> bool
+~override Atc.Desktop.WebHost.Platform.HostRect.ToString() -> string

@@ -24,6 +24,7 @@ internal sealed partial class Win32Window : IHostWindow
     private Win32SynchronizationContext? uiContext;
     private ExceptionDispatchInfo? fatalError;
     private bool isClosed;
+    private bool closeFromCode;
 
     private Win32Window(
         HostWindowOptions options,
@@ -31,6 +32,7 @@ internal sealed partial class Win32Window : IHostWindow
     {
         this.options = options;
         this.events = events;
+        activePlacement = options.Placement;
     }
 
     public static int Run(
@@ -71,6 +73,8 @@ internal sealed partial class Win32Window : IHostWindow
     {
         if (!isClosed)
         {
+            // Closing from code skips the close guard; only the user's close asks the page.
+            closeFromCode = true;
             NativeMethods.PostMessageW(hwnd, NativeMethods.WmClose, 0, 0);
         }
     }
@@ -151,10 +155,10 @@ internal sealed partial class Win32Window : IHostWindow
     private void CreateNativeWindow(nint instance)
     {
         hwnd = NativeMethods.CreateWindowExW(
-            exStyle: 0,
+            exStyle: activePlacement.ShowInTaskbar ? 0 : NativeMethods.WsExToolWindow,
             ClassName,
             options.Title,
-            NativeMethods.WsOverlappedWindow,
+            activePlacement.Fullscreen ? NativeMethods.WsPopup : NativeMethods.WsOverlappedWindow,
             NativeMethods.CwUseDefault,
             NativeMethods.CwUseDefault,
             NativeMethods.CwUseDefault,
@@ -174,7 +178,7 @@ internal sealed partial class Win32Window : IHostWindow
             NativeMethods.DwmSetWindowAttribute(hwnd, NativeMethods.DwmwaUseImmersiveDarkMode, ref on, sizeof(int));
         }
 
-        PlaceCentered();
+        PlaceInitially();
         NativeMethods.ShowWindow(hwnd, NativeMethods.SwShowNormal);
         NativeMethods.UpdateWindow(hwnd);
     }
@@ -200,6 +204,13 @@ internal sealed partial class Win32Window : IHostWindow
                 return 0;
             case NativeMethods.WmDpiChanged:
                 OnDpiChanged(lParam);
+                return 0;
+            case NativeMethods.WmClose:
+                if (closeFromCode || events.OnCloseRequested())
+                {
+                    NativeMethods.DestroyWindow(hwnd);
+                }
+
                 return 0;
             case NativeMethods.WmDestroy:
                 isClosed = true;
@@ -241,6 +252,13 @@ internal sealed partial class Win32Window : IHostWindow
 
     private unsafe void OnDpiChanged(nint lParam)
     {
+        if (activePlacement.Fullscreen)
+        {
+            // The suggested rect would rescale the window; a fullscreen window keeps filling its display.
+            ApplyPlacement();
+            return;
+        }
+
         var suggested = *(Rect*)lParam;
         NativeMethods.SetWindowPos(
             hwnd,

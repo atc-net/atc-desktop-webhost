@@ -1,6 +1,8 @@
 #nullable enable
 Atc.Desktop.WebHost.Windows.WebView2Platform
 Atc.Desktop.WebHost.Windows.WebView2Platform.AllowActivationHandOff() -> void
+Atc.Desktop.WebHost.Windows.WebView2Platform.FilesOrigin.get -> string!
+Atc.Desktop.WebHost.Windows.WebView2Platform.GetMonitors() -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Platform.HostMonitor!>!
 Atc.Desktop.WebHost.Windows.WebView2Platform.IsSupported.get -> bool
 Atc.Desktop.WebHost.Windows.WebView2Platform.IsSystemDarkTheme() -> bool
 Atc.Desktop.WebHost.Windows.WebView2Platform.Name.get -> string!

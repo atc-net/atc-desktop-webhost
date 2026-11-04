@@ -1,6 +1,8 @@
 #nullable enable
 Atc.Desktop.WebHost.Linux.WebKitGtkPlatform
 Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.AllowActivationHandOff() -> void
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.FilesOrigin.get -> string!
+Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.GetMonitors() -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Platform.HostMonitor!>!
 Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.IsSupported.get -> bool
 Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.IsSystemDarkTheme() -> bool
 Atc.Desktop.WebHost.Linux.WebKitGtkPlatform.Name.get -> string!

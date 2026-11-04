@@ -42,6 +42,11 @@ internal static class HostScript
               if (m.ok) p.resolve(m.result);
               else p.reject(Object.assign(new Error(m.error.message), { code: m.error.code }));
             } else if (m.kind === "event") {
+              if (m.type === "window.closeRequested") {
+                // Tell the host the page is alive. A page that armed the close guard but doesn't listen closes at once.
+                notify("window.closeAck");
+                if (!(listeners.get(m.type)?.size > 0)) { request("window.close").catch(() => {}); return 0; }
+              }
               for (const key of [m.type, "*"]) {
                 const set = listeners.get(key);
                 if (set) for (const f of [...set]) { try { f(m.payload, m.type); } catch (e) { console.error(e); } }
@@ -76,11 +81,15 @@ internal static class HostScript
         })();
         """;
 
-    /// <summary>Builds the full script: the boot data followed by the shim.</summary>
+    /// <summary>
+    /// Builds the full script: the boot data followed by the shim. Only the top frame gets them: WebView2 runs
+    /// the script in every frame, and an iframe (a mounted page, or another site) must not see the settings,
+    /// file paths or document. Iframes talk to the app's page with <c>postMessage</c>.
+    /// </summary>
     /// <param name="bootJson">The boot object as JSON.</param>
     /// <returns>The JavaScript source.</returns>
     public static string Build(string bootJson)
-        => string.Concat("window.__ATC_BOOT__=", bootJson, ";\n", Shim);
+        => string.Concat("if (window === window.top) {\nwindow.__ATC_BOOT__=", bootJson, ";\n", Shim, "\n}");
 
     /// <summary>Builds a script that delivers one message (used where the webview has no post-message API).</summary>
     /// <param name="messageJson">The JSON message.</param>

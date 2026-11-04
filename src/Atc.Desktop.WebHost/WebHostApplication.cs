@@ -19,6 +19,8 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     private readonly CancellationTokenSource lifetime = new();
     private readonly FileWatchService fileWatch;
     private readonly PathScope pathScope;
+    private readonly CloseGuard closeGuard = new(TimeProvider.System);
+    private WindowPlacement? placement;
     private WebHostCommandLine commandLine = WebHostCommandLine.Parse([]);
     private Task<JsonPayload>? initialDocument;
     private SingleInstance? singleInstance;
@@ -40,6 +42,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         Settings = new SettingsStore(Paths.ConfigFolder);
         fileWatch = new FileWatchService(OnFileChanged, options.FileChangeDebounce);
         pathScope = new PathScope(options.RestrictFileAccess);
+        _ = new MountTable(options.Mounts); // Bad mount names fail here, not when the window opens.
         RegisterBuiltInHandlers();
     }
 
@@ -137,6 +140,8 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             DevToolsEnabled = Options.DevToolsEnabled || commandLine.IsDevTools,
             AdditionalBrowserArguments = Options.AdditionalBrowserArguments,
             IconPath = Options.IconPath,
+            Placement = Options.Placement,
+            Mounts = Options.Mounts,
         };
 
         Clock.Mark("platformRun");
@@ -216,6 +221,25 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         => _ = Bridge.DispatchAsync(message);
 
     /// <inheritdoc />
+    bool IHostWindowEvents.OnCloseRequested()
+    {
+        switch (closeGuard.OnUserClose())
+        {
+            case CloseDecision.AskPage:
+                Bridge.Emit("window.closeRequested", JsonPayload.Null);
+                return false;
+            case CloseDecision.Wait:
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /// <inheritdoc />
+    void IHostWindowEvents.OnPageUnloaded()
+        => closeGuard.Reset();
+
+    /// <inheritdoc />
     void IHostWindowEvents.OnClosed()
     {
         Clock.Mark("closed");
@@ -248,6 +272,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             writer.WriteString("platform", Options.Platform.Name);
             writer.WriteString("theme", theme);
             writer.WriteString("origin", Options.Platform.Origin);
+            writer.WriteString("filesOrigin", Options.Platform.FilesOrigin);
             writer.WriteBoolean("bench", commandLine.IsBench);
             writer.WriteStartArray("files");
             foreach (var file in commandLine.Files)

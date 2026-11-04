@@ -4,7 +4,7 @@ A fast desktop host for .NET apps with a web frontend: a native window with a we
 
 | Package | What |
 |---|---|
-| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file watching, startup timing. No native dependencies. |
+| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file watching, startup timing, window placement (display, fullscreen), a close guard for unsaved work, extra file folders (mounts). No native dependencies. |
 | 🪟 `Atc.Desktop.WebHost.Windows` | Windows window: plain Win32 + WebView2. No WinForms, WPF or WinUI is loaded. |
 | 🐧 `Atc.Desktop.WebHost.Linux` | Linux window: GTK4 + WebKitGTK 6.0 through [GirCore](https://github.com/gircore/gir.core). Needs `libgtk-4-1` and `libwebkitgtk-6.0-4`. |
 
@@ -97,7 +97,7 @@ Built-in requests:
 |---|---|
 | Host | `host.ready`, `host.info`, `host.document`, `host.firstPaint` |
 | Settings | `settings.get`, `settings.set` |
-| Window and dialogs | `window.setTitle`, `dialog.openFile`, `dialog.saveFile` |
+| Window and dialogs | `window.setTitle`, `window.getMonitors`, `window.setPlacement`, `window.setCloseGuard`, `window.close`, `dialog.openFile`, `dialog.saveFile` |
 | Documents and files | `document.load`, `file.watch`, `file.unwatch` |
 | Shell | `shell.openExternal` |
 

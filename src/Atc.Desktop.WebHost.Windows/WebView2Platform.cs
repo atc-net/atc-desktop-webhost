@@ -12,6 +12,10 @@ public sealed class WebView2Platform : IHostPlatform
         => "webview2";
 
     /// <inheritdoc />
+    public string FilesOrigin
+        => FrontendSource.FilesOrigin;
+
+    /// <inheritdoc />
     public string Origin
         => FrontendSource.Origin;
 
@@ -29,6 +33,10 @@ public sealed class WebView2Platform : IHostPlatform
     /// <inheritdoc />
     public void AllowActivationHandOff()
         => NativeMethods.AllowSetForegroundWindow(NativeMethods.AsfwAny);
+
+    /// <inheritdoc />
+    public IReadOnlyList<HostMonitor> GetMonitors()
+        => Win32Monitors.GetAll();
 
     /// <inheritdoc />
     public int Run(

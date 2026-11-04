@@ -33,6 +33,18 @@ internal static partial class NativeMethods
     public const nint DpiAwarenessContextPerMonitorAwareV2 = -4;
     public const uint DwmwaUseImmersiveDarkMode = 20;
 
+    public const uint WsPopup = 0x80000000;
+    public const uint WsVisible = 0x10000000;
+    public const uint WsExToolWindow = 0x00000080;
+    public const int GwlStyle = -16;
+    public const int GwlExStyle = -20;
+    public const int SwHide = 0;
+    public const int SwShow = 5;
+    public const uint SwpNoSize = 0x0001;
+    public const uint SwpFrameChanged = 0x0020;
+    public const uint MonitorInfoPrimary = 0x00000001;
+    public const int MdtEffectiveDpi = 0;
+
     public const uint OfnOverwritePrompt = 0x00000002;
     public const uint OfnNoChangeDir = 0x00000008;
     public const uint OfnPathMustExist = 0x00000800;
@@ -213,4 +225,30 @@ internal static partial class NativeMethods
     [LibraryImport("comdlg32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool GetSaveFileNameW(ref OpenFileName openFileName);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static unsafe partial bool EnumDisplayMonitors(
+        nint hdc,
+        nint clip,
+        delegate* unmanaged<nint, nint, nint, nint, int> callback,
+        nint data);
+
+    [LibraryImport("shcore.dll")]
+    public static partial int GetDpiForMonitor(
+        nint monitor,
+        int dpiType,
+        out uint dpiX,
+        out uint dpiY);
+
+    [LibraryImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    public static partial nint GetWindowLongPtr(
+        nint hwnd,
+        int index);
+
+    [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+    public static partial nint SetWindowLongPtr(
+        nint hwnd,
+        int index,
+        nint value);
 }
