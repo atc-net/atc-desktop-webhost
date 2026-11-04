@@ -84,6 +84,21 @@ Same PC, SmartScreen off, UI from a folder, 15 runs each, run back to back as JI
 
 WebView2 memory at first paint was ~240 MB this session (~176 MB before).
 
+### 🧩 Window placement, close guard and mounts (2026-11-04)
+
+An A/B test in one session: the previous commit against the one that adds window placement, the close guard, mounts and the top-frame-only boot script. The sample sets no placement and no mounts, so this measures the cost for apps that don't use them. Each round ran both builds, alternating which went first, after one warm-up launch each.
+
+| Windows (WebView2), 15 rounds | Before | After |
+|---|---|---|
+| `text-1kb.txt` median (p90) | 714 ms (772) | 694 ms (857) |
+| `text-10mb.txt` median (p90) | 1,643 ms (1,926) | 1,600 ms (1,881) |
+
+| Linux (WSL, software rendering), 9 rounds | Before | After |
+|---|---|---|
+| `readme-5k.md` median | 1,076 ms | 1,051 ms |
+
+➖ **No measurable cost.** The differences are within noise. On Linux every request now goes through `URISchemeResponse` (status and headers) instead of `URISchemeRequest.Finish`, so the Linux row covers the changed page-serving path. The Windows numbers are higher than in the comparison above because WebView2 was slower in this session. Only the before/after columns compare.
+
 ### 🐧 Linux (WebKitGTK), first runs (2026-10-29)
 
 WSL on David's PC: Ubuntu, GTK 4.22, WebKitGTK 2.52, .NET 10.0.5, JIT Release build, 5,000-line fixture. Run directly with `--bench` (`measure.ps1` is Windows-only so far). 🖥️ **Software rendering:** the WSL user can't open `/dev/dri` (not in the `video`/`render` groups), so these are worst-case paint numbers.
