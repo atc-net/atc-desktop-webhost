@@ -68,13 +68,12 @@ internal sealed partial class Win32Window
     {
         var settings = view.Settings;
         settings.AreDevToolsEnabled = options.DevToolsEnabled;
-        settings.AreDefaultContextMenusEnabled = options.DevToolsEnabled;
-        settings.AreBrowserAcceleratorKeysEnabled = options.DevToolsEnabled;
-        settings.IsStatusBarEnabled = false;
-        settings.IsPasswordAutosaveEnabled = false;
-        settings.IsGeneralAutofillEnabled = false;
-        settings.IsSwipeNavigationEnabled = false;
-        settings.AreHostObjectsAllowed = false;
+        var menu = options.DevToolsEnabled ? HostContextMenu.Full : options.ContextMenu;
+        settings.AreDefaultContextMenusEnabled = menu != HostContextMenu.None;
+        if (menu == HostContextMenu.Edit)
+        {
+            view.ContextMenuRequested += (_, e) => ContextMenuFilter.KeepEditItems(e);
+        }
 
         settings.AreBrowserAcceleratorKeysEnabled = options.DevToolsEnabled;
         settings.IsStatusBarEnabled = false;

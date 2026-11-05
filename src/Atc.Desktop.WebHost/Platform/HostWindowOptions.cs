@@ -45,6 +45,9 @@ public sealed class HostWindowOptions
     /// <summary>Gets the standard keys the window handles before the page. See <see cref="HostKeys"/>.</summary>
     public HostKeys Keys { get; init; } = HostKeys.All;
 
+    /// <summary>Gets what the right-click menu shows (<see cref="HostContextMenu.Full"/> when dev tools are on).</summary>
+    public HostContextMenu ContextMenu { get; init; } = HostContextMenu.Edit;
+
     /// <summary>Gets the extra file folders served on the files origin. See <see cref="FrontendMount"/>.</summary>
     public IReadOnlyList<FrontendMount> Mounts { get; init; } = [];
 }

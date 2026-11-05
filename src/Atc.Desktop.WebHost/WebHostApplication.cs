@@ -142,6 +142,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             Placement = Options.Placement,
             Mounts = Options.Mounts,
             Keys = Options.Keys,
+            ContextMenu = Options.ContextMenu,
         };
 
         Clock.Mark("platformRun");

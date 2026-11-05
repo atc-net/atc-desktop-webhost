@@ -172,6 +172,41 @@ internal sealed class GtkHostWindow : IHostWindow
         operation.RunDialog(window);
     }
 
+    /// <summary>Trims the right-click menu to <see cref="HostWindowOptions.ContextMenu"/>.</summary>
+    /// <returns><see langword="true"/> to show the (trimmed) menu.</returns>
+    private bool ShowContextMenu(WebKit.ContextMenu menu)
+    {
+        var mode = options.DevToolsEnabled ? HostContextMenu.Full : options.ContextMenu;
+        if (mode != HostContextMenu.Edit)
+        {
+            return mode == HostContextMenu.Full;
+        }
+
+        for (var i = (int)menu.GetNItems() - 1; i >= 0; i--)
+        {
+            var item = menu.GetItemAtPosition((uint)i);
+            if (item is null)
+            {
+                continue;
+            }
+
+            var keep = !item.IsSeparator() && item.GetStockAction() is
+                WebKit.ContextMenuAction.Copy or
+                WebKit.ContextMenuAction.Cut or
+                WebKit.ContextMenuAction.Paste or
+                WebKit.ContextMenuAction.PasteAsPlainText or
+                WebKit.ContextMenuAction.SelectAll or
+                WebKit.ContextMenuAction.CopyLinkToClipboard or
+                WebKit.ContextMenuAction.CopyImageToClipboard;
+            if (!keep)
+            {
+                menu.Remove(item);
+            }
+        }
+
+        return menu.GetNItems() > 0;
+    }
+
     /// <summary>Standard keys (<see cref="HostKeys"/>) before the page sees them: F11, Ctrl+P, Ctrl+F4.</summary>
     /// <returns><see langword="true"/> when the key was handled here.</returns>
     private bool OnKeyPressed(
@@ -296,7 +331,7 @@ internal sealed class GtkHostWindow : IHostWindow
         webView = CreateWebView(options.DataFolder);
         SetBackground(webView, options.BackgroundColor);
         webView.GetSettings().SetEnableDeveloperExtras(options.DevToolsEnabled);
-        webView.OnContextMenu += (_, _) => !options.DevToolsEnabled;
+        webView.OnContextMenu += (_, e) => !ShowContextMenu(e.ContextMenu);
 
         var contentManager = webView.GetUserContentManager();
         contentManager.RegisterScriptMessageHandler(HostScript.MessageHandlerName, worldName: null);

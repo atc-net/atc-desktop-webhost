@@ -48,6 +48,12 @@ public sealed class WebHostOptions
     public HostKeys Keys { get; init; } = HostKeys.All;
 
     /// <summary>
+    /// Gets what the right-click menu shows. The default, <see cref="HostContextMenu.Edit"/>, gives cut, copy, paste
+    /// and select all, so text in a viewer can be copied. With dev tools on it is always the full menu.
+    /// </summary>
+    public HostContextMenu ContextMenu { get; init; } = HostContextMenu.Edit;
+
+    /// <summary>
     /// Gets extra file folders the page can load from a second private origin (for example the document's images).
     /// See <see cref="FrontendMount"/>. The app's own frontend is not affected.
     /// </summary>

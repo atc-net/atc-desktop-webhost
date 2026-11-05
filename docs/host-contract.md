@@ -132,6 +132,10 @@ These keys are handled before the page sees them (`WebHostOptions.Keys`, all on 
 
 When a page element goes fullscreen (a video's fullscreen button), the window goes fullscreen too and comes back when the element leaves. Whoever started fullscreen ends it: a video ending its fullscreen doesn't undo F11. Esc ends a video's fullscreen.
 
+### Right-click menu
+
+`WebHostOptions.ContextMenu`: `Edit` (default) shows cut, copy, paste, paste as plain text and select all, so text can be copied; `None` shows nothing; `Full` shows the webview's whole menu (always with `--devtools`).
+
 
 ### Unsaved work (close guard)
 

@@ -82,6 +82,10 @@ Atc.Desktop.WebHost.Platform.HostColor.HostColor(byte R, byte G, byte B) -> void
 Atc.Desktop.WebHost.Platform.HostColor.R.get -> byte
 Atc.Desktop.WebHost.Platform.HostColor.R.init -> void
 Atc.Desktop.WebHost.Platform.HostColor.ToCss() -> string!
+Atc.Desktop.WebHost.Platform.HostContextMenu
+Atc.Desktop.WebHost.Platform.HostContextMenu.Edit = 1 -> Atc.Desktop.WebHost.Platform.HostContextMenu
+Atc.Desktop.WebHost.Platform.HostContextMenu.Full = 2 -> Atc.Desktop.WebHost.Platform.HostContextMenu
+Atc.Desktop.WebHost.Platform.HostContextMenu.None = 0 -> Atc.Desktop.WebHost.Platform.HostContextMenu
 Atc.Desktop.WebHost.Platform.HostKeys
 Atc.Desktop.WebHost.Platform.HostKeys.All = Atc.Desktop.WebHost.Platform.HostKeys.Fullscreen | Atc.Desktop.WebHost.Platform.HostKeys.Find | Atc.Desktop.WebHost.Platform.HostKeys.Print | Atc.Desktop.WebHost.Platform.HostKeys.Close -> Atc.Desktop.WebHost.Platform.HostKeys
 Atc.Desktop.WebHost.Platform.HostKeys.Close = 8 -> Atc.Desktop.WebHost.Platform.HostKeys
@@ -124,6 +128,8 @@ Atc.Desktop.WebHost.Platform.HostWindowOptions.AppId.get -> string!
 Atc.Desktop.WebHost.Platform.HostWindowOptions.AppId.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.BackgroundColor.get -> Atc.Desktop.WebHost.Platform.HostColor
 Atc.Desktop.WebHost.Platform.HostWindowOptions.BackgroundColor.init -> void
+Atc.Desktop.WebHost.Platform.HostWindowOptions.ContextMenu.get -> Atc.Desktop.WebHost.Platform.HostContextMenu
+Atc.Desktop.WebHost.Platform.HostWindowOptions.ContextMenu.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.DataFolder.get -> string!
 Atc.Desktop.WebHost.Platform.HostWindowOptions.DataFolder.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.DevToolsEnabled.get -> bool
@@ -216,6 +222,8 @@ Atc.Desktop.WebHost.WebHostOptions.AdditionalBrowserArguments.get -> string?
 Atc.Desktop.WebHost.WebHostOptions.AdditionalBrowserArguments.init -> void
 Atc.Desktop.WebHost.WebHostOptions.AppId.get -> string!
 Atc.Desktop.WebHost.WebHostOptions.AppId.init -> void
+Atc.Desktop.WebHost.WebHostOptions.ContextMenu.get -> Atc.Desktop.WebHost.Platform.HostContextMenu
+Atc.Desktop.WebHost.WebHostOptions.ContextMenu.init -> void
 Atc.Desktop.WebHost.WebHostOptions.DarkBackground.get -> Atc.Desktop.WebHost.Platform.HostColor
 Atc.Desktop.WebHost.WebHostOptions.DarkBackground.init -> void
 Atc.Desktop.WebHost.WebHostOptions.DevToolsEnabled.get -> bool
