@@ -39,6 +39,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         Options = options;
         Paths = HostPaths.Resolve(options.Vendor, options.AppId);
         Settings = new SettingsStore(Paths.ConfigFolder);
+        Language = LanguageResolver.Resolve(options.Languages, Settings.GetString("language"), CultureInfo.CurrentUICulture);
         fileWatch = new FileWatchService(OnFileChanged, options.FileChangeDebounce);
         pathScope = new PathScope(options.RestrictFileAccess);
         _ = new MountTable(options.Mounts); // Bad mount names fail here, not when the window opens.
@@ -50,6 +51,12 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
 
     /// <summary>Gets the bridge: add request handlers and send events here.</summary>
     public WebBridge Bridge { get; } = new();
+
+    /// <summary>
+    /// Gets the UI language, one of <see cref="WebHostOptions.Languages"/>: the <c>language</c> setting, else the OS UI
+    /// language, else the first. Resolved at start; a changed setting reaches the webview's own menus after a restart.
+    /// </summary>
+    public string Language { get; }
 
     /// <summary>Gets the persisted user settings.</summary>
     public SettingsStore Settings { get; }
@@ -152,6 +159,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             Mounts = Options.Mounts,
             Keys = Options.Keys,
             ContextMenu = Options.ContextMenu,
+            Language = Language,
         };
 
         Clock.Mark("platformRun");
@@ -325,6 +333,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             writer.WriteString("appId", Options.AppId);
             writer.WriteString("platform", Options.Platform.Name);
             writer.WriteString("theme", theme);
+            writer.WriteString("language", Language);
             writer.WriteString("origin", Options.Platform.Origin);
             writer.WriteString("filesOrigin", Options.Platform.FilesOrigin);
             writer.WriteBoolean("bench", commandLine.IsBench);

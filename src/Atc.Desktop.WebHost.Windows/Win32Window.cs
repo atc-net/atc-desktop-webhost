@@ -314,8 +314,8 @@ internal sealed partial class Win32Window : IHostWindow
     private void ShowFatalError(Exception ex)
     {
         var text = ex is WebView2RuntimeNotFoundException
-            ? "The Microsoft Edge WebView2 Runtime is not installed.\n\nInstall it from https://go.microsoft.com/fwlink/p/?LinkId=2124703 and start the app again."
-            : "The window could not start:\n\n" + ex.Message;
+            ? HostTexts.Get(options.Language, HostTexts.WebView2Missing)
+            : HostTexts.Get(options.Language, HostTexts.WindowCouldNotStart) + "\n\n" + ex.Message;
         NativeMethods.MessageBoxW(hwnd, text, options.Title, NativeMethods.MbIconError);
         NativeMethods.DestroyWindow(hwnd);
     }

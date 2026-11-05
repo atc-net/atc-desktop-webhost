@@ -48,6 +48,14 @@ public sealed class WebHostOptions
     public HostKeys Keys { get; init; } = HostKeys.All;
 
     /// <summary>
+    /// Gets the UI languages the app has texts for, e.g. <c>["en", "da-DK", "de-DE"]</c>; the first is the fallback.
+    /// The host picks one (the <c>language</c> setting, else the OS UI language) and passes it to the page as
+    /// <c>boot.language</c>, to WebView2 (its menu, find bar and print dialog) and to .NET as
+    /// <see cref="WebHostApplication.Language"/>.
+    /// </summary>
+    public IReadOnlyList<string> Languages { get; init; } = ["en"];
+
+    /// <summary>
     /// Gets what the right-click menu shows. The default, <see cref="HostContextMenu.Edit"/>, gives cut, copy, paste
     /// and select all, so text in a viewer can be copied. With dev tools on it is always the full menu.
     /// </summary>

@@ -21,7 +21,7 @@ internal sealed partial class Win32Window
         try
         {
             events.Mark("webviewStarting");
-            var environmentOptions = new CoreWebView2EnvironmentOptions(options.AdditionalBrowserArguments);
+            var environmentOptions = new CoreWebView2EnvironmentOptions(options.AdditionalBrowserArguments, options.Language);
             environment = await CoreWebView2Environment
                 .CreateAsync(browserExecutableFolder: null, options.DataFolder, environmentOptions)
                 .ConfigureAwait(true);

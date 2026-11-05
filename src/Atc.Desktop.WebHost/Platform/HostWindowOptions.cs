@@ -45,6 +45,9 @@ public sealed class HostWindowOptions
     /// <summary>Gets the standard keys the window handles before the page. See <see cref="HostKeys"/>.</summary>
     public HostKeys Keys { get; init; } = HostKeys.All;
 
+    /// <summary>Gets the UI language, e.g. "da-DK": for the webview's own menus and dialogs and the host's messages.</summary>
+    public string Language { get; init; } = "en";
+
     /// <summary>Gets what the right-click menu shows (<see cref="HostContextMenu.Full"/> when dev tools are on).</summary>
     public HostContextMenu ContextMenu { get; init; } = HostContextMenu.Edit;
 

@@ -56,6 +56,7 @@ Available as `atcHost.boot` before the first page script, so the first paint nee
 | `platform` | `"webview2"` \| `"webkitgtk"` | Same as `atcHost.platform` |
 | `theme` | `"light"` \| `"dark"` | Resolved theme (the `theme` setting, or the OS when it's `system`). The window was painted in this theme's background colour |
 | `origin` | string | The page's origin: `https://app.atc-webhost.example` on Windows, `atc-app://app` on Linux |
+| `language` | string | The UI language, one of `WebHostOptions.Languages` (e.g. `en`, `da-DK`, `de-DE`): the `language` setting, else the OS UI language, else the first. Change it with `settings.set({ language })`; the page switches its own texts at once, the webview's menus and dialogs after a restart |
 | `filesOrigin` | string | Where mounts are served: `https://files.atc-webhost.example` on Windows, `atc-app://files` on Linux |
 | `bench` | boolean | Started with `--bench`: the page should report first paint and do nothing else |
 | `files` | string[] | Files from the command line, full paths |

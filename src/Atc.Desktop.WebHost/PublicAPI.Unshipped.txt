@@ -147,6 +147,8 @@ Atc.Desktop.WebHost.Platform.HostWindowOptions.IsDark.get -> bool
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IsDark.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Keys.get -> Atc.Desktop.WebHost.Platform.HostKeys
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Keys.init -> void
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Language.get -> string!
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Language.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Mounts.get -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Frontend.FrontendMount!>!
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Mounts.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Placement.get -> Atc.Desktop.WebHost.Platform.WindowPlacement!
@@ -201,6 +203,7 @@ Atc.Desktop.WebHost.WebHostApplication.CommandLine.get -> Atc.Desktop.WebHost.We
 Atc.Desktop.WebHost.WebHostApplication.Dispose() -> void
 Atc.Desktop.WebHost.WebHostApplication.GrantFileAccess(string! filePath) -> void
 Atc.Desktop.WebHost.WebHostApplication.IsFileAccessAllowed(string! path) -> bool
+Atc.Desktop.WebHost.WebHostApplication.Language.get -> string!
 Atc.Desktop.WebHost.WebHostApplication.Lifetime.get -> System.Threading.CancellationToken
 Atc.Desktop.WebHost.WebHostApplication.Options.get -> Atc.Desktop.WebHost.WebHostOptions!
 Atc.Desktop.WebHost.WebHostApplication.Paths.get -> Atc.Desktop.WebHost.Hosting.HostPaths!
@@ -244,6 +247,8 @@ Atc.Desktop.WebHost.WebHostOptions.InlineDocumentWait.get -> System.TimeSpan
 Atc.Desktop.WebHost.WebHostOptions.InlineDocumentWait.init -> void
 Atc.Desktop.WebHost.WebHostOptions.Keys.get -> Atc.Desktop.WebHost.Platform.HostKeys
 Atc.Desktop.WebHost.WebHostOptions.Keys.init -> void
+Atc.Desktop.WebHost.WebHostOptions.Languages.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Atc.Desktop.WebHost.WebHostOptions.Languages.init -> void
 Atc.Desktop.WebHost.WebHostOptions.LightBackground.get -> Atc.Desktop.WebHost.Platform.HostColor
 Atc.Desktop.WebHost.WebHostOptions.LightBackground.init -> void
 Atc.Desktop.WebHost.WebHostOptions.LoadDocument.get -> Atc.Desktop.WebHost.DocumentLoader?
