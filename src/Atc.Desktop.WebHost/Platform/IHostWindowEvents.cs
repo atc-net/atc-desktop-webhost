@@ -34,6 +34,16 @@ public interface IHostWindowEvents
     /// <returns><see langword="true"/> to close; <see langword="false"/> to keep the window open.</returns>
     bool OnCloseRequested();
 
+    /// <summary>
+    /// A message from the page that carried files (WebView2 <c>postMessageWithAdditionalObjects</c>, used by
+    /// <c>atcHost.getFilePaths</c>). The paths come from the webview, never from the message text.
+    /// </summary>
+    /// <param name="message">The message text.</param>
+    /// <param name="filePaths">The full paths of the files.</param>
+    void OnFilesReceived(
+        string message,
+        IReadOnlyList<string> filePaths);
+
     /// <summary>The page is gone: it reloaded, navigated within the app, or its web process failed.</summary>
     void OnPageUnloaded();
 

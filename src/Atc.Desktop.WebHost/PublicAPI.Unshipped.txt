@@ -181,6 +181,7 @@ Atc.Desktop.WebHost.Platform.IHostWindowEvents.CreateDocumentScriptAsync() -> Sy
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.Mark(string! name) -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnClosed() -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnCloseRequested() -> bool
+Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnFilesReceived(string! message, System.Collections.Generic.IReadOnlyList<string!>! filePaths) -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnPageUnloaded() -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnMessage(string! message) -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnPlacementChanged(Atc.Desktop.WebHost.Platform.WindowPlacement! placement) -> void

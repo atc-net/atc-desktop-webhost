@@ -175,6 +175,14 @@ internal sealed partial class Win32Window
             message = e.WebMessageAsJson;
         }
 
+        // Files sent with postMessageWithAdditionalObjects (dropped or picked in the page): WebView2 gives their paths.
+        if (e.AdditionalObjects is { Count: > 0 } objects)
+        {
+            var paths = objects.OfType<CoreWebView2File>().Select(f => f.Path).Where(p => !string.IsNullOrEmpty(p)).ToList();
+            events.OnFilesReceived(message, paths);
+            return;
+        }
+
         events.OnMessage(message);
     }
 

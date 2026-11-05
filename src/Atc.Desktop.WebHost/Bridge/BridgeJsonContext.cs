@@ -5,6 +5,7 @@ namespace Atc.Desktop.WebHost.Bridge;
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(IReadOnlyList<string>))]
 [JsonSerializable(typeof(IReadOnlyDictionary<string, double>))]
 [JsonSerializable(typeof(Dictionary<string, double>))]
 [JsonSerializable(typeof(BuiltInMessages.PathRequest))]

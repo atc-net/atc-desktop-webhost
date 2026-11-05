@@ -76,8 +76,17 @@ internal static class HostScript
             return () => set.delete(handler);
           };
           const ready = () => { if (!isReady) { isReady = true; notify("host.ready"); } };
+          // Full paths of dropped (or picked) files. WebView2 hands the File objects to the host, which reads the
+          // real paths and lets the page use them. Elsewhere (Linux) the answer is an empty list.
+          const getFilePaths = (files) => new Promise((resolve, reject) => {
+            const list = Array.from(files || []);
+            if (list.length === 0 || boot.platform !== "webview2") { resolve([]); return; }
+            const id = nextId++;
+            pending.set(id, { resolve, reject });
+            window.chrome.webview.postMessageWithAdditionalObjects(JSON.stringify({ kind: "request", id, type: "file.paths" }), list);
+          });
           document.addEventListener("DOMContentLoaded", ready, { once: true });
-          window.atcHost = Object.freeze({ platform: boot.platform, boot, request, notify, on, ready });
+          window.atcHost = Object.freeze({ platform: boot.platform, boot, request, notify, on, ready, getFilePaths });
         })();
         """;
 

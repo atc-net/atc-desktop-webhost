@@ -188,6 +188,11 @@ public sealed partial class WebHostApplication
             return ValueTask.FromResult(JsonPayload.Null);
         });
 
+        // Answered by the host when the request carries files (see OnFilesReceived). Without files: no paths.
+        Bridge.Handle("file.paths", (_, _) => ValueTask.FromResult(JsonPayload.From(
+            Array.Empty<string>(),
+            BridgeJsonContext.Default.IReadOnlyListString)));
+
         Bridge.Handle("file.unwatch", (request, _) =>
         {
             fileWatch.Unwatch(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path);

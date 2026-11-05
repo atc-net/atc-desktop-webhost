@@ -266,6 +266,14 @@ public sealed class WebBridge
         }
     }
 
+    /// <summary>Answers a request the host handled outside the normal handlers (e.g. one that carried files).</summary>
+    /// <param name="id">The request id as raw JSON (a number or a string).</param>
+    /// <param name="result">The result.</param>
+    internal void Respond(
+        string id,
+        JsonPayload result)
+        => SendResponse(BuildResponse(id, result));
+
     private void SendResponse(string message)
         => transport?.Invoke(message);
 

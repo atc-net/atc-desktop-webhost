@@ -37,6 +37,7 @@ interface AtcHost {
   notify(type: string, payload?: unknown): void;               // no response
   on(type: string, handler: (payload: any, type: string) => void): () => void;  // "*" = every event
   ready(): void;                                                 // start receiving events
+  getFilePaths(files: FileList | File[]): Promise<string[]>;     // full paths of dropped files (WebView2; [] on Linux)
 }
 ```
 
@@ -96,6 +97,7 @@ All messages are JSON text.
 | `window.setPlacement` | `{ monitor?, fullscreen?, showInTaskbar? }` | `null`. Moves the window; fields left out keep the window's current value (F11 changes it too). Leaving fullscreen brings the window back to its earlier size and place. Linux: only fullscreen on a display (Wayland can't place a normal window or hide it from the taskbar) |
 | `page.find` | `{ text? }` | `null`. Opens the find bar (Windows). Linux has none: the page keeps Ctrl+F there |
 | `page.print` | – | `null`. Opens the print dialog |
+| `file.paths` | – | `string[]`. Sent by `getFilePaths` together with the files; without files the answer is `[]` |
 | `window.closeAck` | – | `null`. Sent by the host script when `window.closeRequested` arrives; pages don't send it |
 | `dialog.openFile` | `{ title?, defaultPath?, filters?: [{ name, patterns }] }` | `{ path }`, `path` is `null` when cancelled |
 | `dialog.saveFile` | Same as `dialog.openFile` | `{ path }` |
@@ -135,6 +137,19 @@ When a page element goes fullscreen (a video's fullscreen button), the window go
 ### Right-click menu
 
 `WebHostOptions.ContextMenu`: `Edit` (default) shows cut, copy, paste, paste as plain text and select all, so text can be copied; `None` shows nothing; `Full` shows the webview's whole menu (always with `--devtools`).
+
+### Dropped files
+
+A dropped `File` in the page has no path. `atcHost.getFilePaths(e.dataTransfer.files)` asks the host: on Windows, WebView2 hands the file objects to the host, which reads their real paths, lets the page use them (like files from the Open dialog) and answers with the paths. The paths never travel in the message text, so a page can't make the host grant a path it invents. On Linux the answer is `[]` for now.
+
+```js
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  const [path] = await atcHost.getFilePaths(e.dataTransfer.files);
+  if (path) show(await atcHost.request("document.load", { path }));
+});
+```
 
 
 ### Unsaved work (close guard)

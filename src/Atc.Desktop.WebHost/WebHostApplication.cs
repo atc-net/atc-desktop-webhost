@@ -237,6 +237,43 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     }
 
     /// <inheritdoc />
+    void IHostWindowEvents.OnFilesReceived(
+        string message,
+        IReadOnlyList<string> filePaths)
+    {
+        string? id;
+        try
+        {
+            using var document = JsonDocument.Parse(message);
+            var root = document.RootElement;
+            var isFilePaths = root.ValueKind == JsonValueKind.Object &&
+                              root.TryGetProperty("type", out var type) &&
+                              type.ValueKind == JsonValueKind.String &&
+                              type.GetString() == "file.paths";
+            id = isFilePaths && root.TryGetProperty("id", out var idElement) && idElement.ValueKind == JsonValueKind.Number
+                ? idElement.GetRawText()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return;
+        }
+
+        if (id is null)
+        {
+            return;
+        }
+
+        // The user dropped (or picked) these files: the page may now load and watch them, like files from the Open dialog.
+        foreach (var path in filePaths)
+        {
+            pathScope.Grant(path);
+        }
+
+        Bridge.Respond(id, JsonPayload.From(filePaths, BridgeJsonContext.Default.IReadOnlyListString));
+    }
+
+    /// <inheritdoc />
     void IHostWindowEvents.OnPageUnloaded()
         => closeGuard.Reset();
 
