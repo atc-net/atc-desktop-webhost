@@ -47,3 +47,19 @@ jobs:
       - name: Startup smoke test (Linux)
         if: runner.os == 'Linux'
         run: xvfb-run -a pwsh ./benchmarks/Test-Startup.ps1 -TimeoutSeconds 120
+
+      # The sample's self-test in a real window (requests, events, files, mounts, frames), and on Windows a real
+      # file drop and the user's close over WebView2's DevTools protocol.
+      - uses: actions/setup-node@v5
+        if: runner.os == 'Windows'
+        with:
+          node-version: 22
+
+      - name: End-to-end tests (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./test/EndToEnd/Test-EndToEnd.ps1
+
+      - name: End-to-end tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a pwsh ./test/EndToEnd/Test-EndToEnd.ps1

@@ -107,14 +107,23 @@ The full page-side contract (boot object, messages, error codes, versioning) is 
 
 ## 🧪 Sample
 
-`sample/Atc.Desktop.WebHost.Sample` is a small text viewer. It demonstrates the host and is the app the benchmarks run.
+`sample/Atc.Desktop.WebHost.Sample` is a text viewer with a tour of the host, one tab per part: the document (open, drop, watch), the window (displays, fullscreen, find, print, close guard, keys), files and frames (a mount, an iframe), the bridge (round trips and event throughput) and a self-test. It's in English, Danish and German. It's also the app the benchmarks run; the tour loads after the first paint, and not at all with `--bench`.
 
 ```shell
 dotnet run --project sample/Atc.Desktop.WebHost.Sample -- benchmarks/fixtures/readme-5k.md
 dotnet run --project sample/Atc.Desktop.WebHost.Sample -- --ui=embedded --devtools
 ```
 
-It includes a 📊 **Bridge bench** button, which measures request round trips (empty to 1 MB) and event throughput.
+## ✅ Tests
+
+- **Unit tests:** `dotnet test --project test/Atc.Desktop.WebHost.Tests/Atc.Desktop.WebHost.Tests.csproj`.
+- **End-to-end:** `pwsh test/EndToEnd/Test-EndToEnd.ps1` after a Release build (on a Linux server: `xvfb-run -a pwsh ...`).
+  - The sample's **self-test** (`--selftest`) checks the host's requests, events, error codes, files, mounts and frames in a real window and exits with 1 on a failure. The same checks run from the sample's Self-test tab.
+  - On Windows, `test/EndToEnd/devtools-checks.mjs` adds what the page can't do itself, over WebView2's DevTools protocol: a real file drop and the user closing the window with the close guard on. Needs Node 22.
+  - Not automated (they need a person): the Open/Save dialogs, print, the find bar, keys (F11, Ctrl+F, Ctrl+P, Ctrl+F4) and the right-click menu.
+- **Startup smoke test:** `pwsh benchmarks/Test-Startup.ps1`.
+
+CI runs all of them on Windows and Linux.
 
 ## 🙏 Credits
 
