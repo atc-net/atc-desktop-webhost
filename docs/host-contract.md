@@ -22,7 +22,7 @@ An app adds folders with `WebHostOptions.Mounts`, for example `new FrontendMount
 
 - Mounts have their own origin because WebView2 serves a folder-mapped host entirely natively: a request handler is never called for it. The app's frontend keeps that fast path.
 - Mounted files are read into memory for each request, so nothing stays locked. They are sent with `Cache-Control: no-cache` (change it with `FrontendMount.CacheControl`) and `Access-Control-Allow-Origin` for the app's origin, so the page can also `fetch` them.
-- Paths with `..` segments, unknown mounts and missing files get 404.
+- Paths with `..` segments, unknown mounts and missing files get 404, with the CORS header, so a `fetch` from the page sees the 404 instead of failing.
 - A mounted page can be shown in an iframe, but it is another origin: it talks to the app's page with `postMessage`, never to the host. Messages to the host are only accepted from the app's own page.
 
 ## 2. `window.atcHost`
@@ -141,7 +141,7 @@ When a page element goes fullscreen (a video's fullscreen button), the window go
 
 ### Dropped files
 
-A dropped `File` in the page has no path. `atcHost.getFilePaths(e.dataTransfer.files)` asks the host: on Windows, WebView2 hands the file objects to the host, which reads their real paths, lets the page use them (like files from the Open dialog) and answers with the paths. The paths never travel in the message text, so a page can't make the host grant a path it invents. On Linux the answer is `[]` for now.
+A dropped `File` in the page has no path. `atcHost.getFilePaths(e.dataTransfer.files)` asks the host: on Windows, WebView2 hands the file objects to the host, which reads their real paths, lets the page use them (like files from the Open dialog) and answers with the paths. The paths never travel in the message text, so a page can't make the host grant a path it invents. A `File` made in the page (not on disk) has no path either: the answer is `[]`. On Linux the answer is `[]` for now.
 
 ```js
 document.addEventListener("dragover", (e) => e.preventDefault());

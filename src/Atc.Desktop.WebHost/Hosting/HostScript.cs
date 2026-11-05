@@ -83,7 +83,13 @@ internal static class HostScript
             if (list.length === 0 || boot.platform !== "webview2") { resolve([]); return; }
             const id = nextId++;
             pending.set(id, { resolve, reject });
-            window.chrome.webview.postMessageWithAdditionalObjects(JSON.stringify({ kind: "request", id, type: "file.paths" }), list);
+            try {
+              window.chrome.webview.postMessageWithAdditionalObjects(JSON.stringify({ kind: "request", id, type: "file.paths" }), list);
+            } catch {
+              // WebView2 refuses a File that isn't on disk (made in the page): such files have no path.
+              pending.delete(id);
+              resolve([]);
+            }
           });
           document.addEventListener("DOMContentLoaded", ready, { once: true });
           window.atcHost = Object.freeze({ platform: boot.platform, boot, request, notify, on, ready, getFilePaths });

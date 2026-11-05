@@ -137,8 +137,10 @@ internal sealed partial class Win32Window
         if (mounts is not null && string.Equals(uri.Host, FrontendSource.FilesHostName, StringComparison.OrdinalIgnoreCase))
         {
             var file = mounts.Open(Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/'));
+
+            // A 404 also carries the CORS header: without it the page's fetch fails instead of seeing the 404.
             e.Response = file is null
-                ? environment!.CreateWebResourceResponse(Content: null, 404, "Not Found", Headers: string.Empty)
+                ? environment!.CreateWebResourceResponse(Content: null, 404, "Not Found", "Access-Control-Allow-Origin: " + FrontendSource.Origin)
                 : environment!.CreateWebResourceResponse(file.Content, 200, "OK", MountHeaders(file));
             return;
         }

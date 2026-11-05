@@ -489,7 +489,8 @@ internal sealed class GtkHostWindow : IHostWindow
             var file = mounts.Open(path);
             if (file is null)
             {
-                Respond(request, [], "text/plain", status: 404, cacheControl: null, allowAppOrigin: false);
+                // With the CORS header, so the page's fetch sees the 404 instead of failing.
+                Respond(request, [], "text/plain", status: 404, cacheControl: null, allowAppOrigin: true);
                 return;
             }
 
@@ -526,8 +527,9 @@ internal sealed class GtkHostWindow : IHostWindow
         string? cacheControl,
         bool allowAppOrigin)
     {
-        using var bytes = GLib.Bytes.New(content);
-        using var input = Gio.MemoryInputStream.NewFromBytes(bytes);
+        // An empty body (a 404) gets an empty stream: GirCore's GLib.Bytes throws for zero bytes.
+        using var bytes = content.Length == 0 ? null : GLib.Bytes.New(content);
+        using var input = bytes is null ? Gio.MemoryInputStream.New() : Gio.MemoryInputStream.NewFromBytes(bytes);
         using var response = WebKit.URISchemeResponse.New(input, content.Length);
         response.SetStatus(status, reasonPhrase: null);
         response.SetContentType(contentType);
