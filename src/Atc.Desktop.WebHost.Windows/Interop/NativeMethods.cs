@@ -59,6 +59,16 @@ internal static partial class NativeMethods
     public const uint OfnFileMustExist = 0x00001000;
     public const uint OfnExplorer = 0x00080000;
 
+    public const uint FosNoChangeDir = 0x00000008;
+    public const uint FosPickFolders = 0x00000020;
+    public const uint FosForceFileSystem = 0x00000040;
+    public const uint FosPathMustExist = 0x00000800;
+    public const uint SigdnFileSysPath = 0x80058000;
+    public const uint ClsctxInprocServer = 0x1;
+    public const int ErrorCancelled = unchecked((int)0x800704C7);
+
+    public static readonly Guid FileOpenDialogClassId = new("dc1c5a9c-e88a-4dde-a5a1-60f82a20aef7");
+
     [LibraryImport("user32.dll", SetLastError = true)]
     public static partial ushort RegisterClassExW(in WndClassEx windowClass);
 
@@ -229,6 +239,21 @@ internal static partial class NativeMethods
     [LibraryImport("comdlg32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool GetOpenFileNameW(ref OpenFileName openFileName);
+
+    [LibraryImport("ole32.dll")]
+    public static partial int CoCreateInstance(
+        in Guid classId,
+        nint outer,
+        uint context,
+        in Guid interfaceId,
+        out IFileDialog dialog);
+
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial int SHCreateItemFromParsingName(
+        string path,
+        nint bindContext,
+        in Guid interfaceId,
+        out IShellItem item);
 
     [LibraryImport("comdlg32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

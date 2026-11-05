@@ -20,7 +20,7 @@ param(
     [string] $Exe,
     [string] $Fixture = (Join-Path $PSScriptRoot '../../benchmarks/fixtures/text-1kb.txt'),
     [int] $TimeoutSeconds = 120,
-    [int] $MinPassed = 25,
+    [int] $MinPassed = 30,
     [switch] $SkipDevTools
 )
 

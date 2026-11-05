@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Atc.Desktop.WebHost\Atc.Desktop.WebHost.csproj" />
+    <ProjectReference Include="..\..\src\Atc.Desktop.WebHost.Windows\Atc.Desktop.WebHost.Windows.csproj" />
   </ItemGroup>
 
 </Project>

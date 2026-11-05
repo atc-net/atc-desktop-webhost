@@ -4,7 +4,7 @@ A fast desktop host for .NET apps with a web frontend: a native window with a we
 
 | Package | What |
 |---|---|
-| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file watching, startup timing, window placement (display, fullscreen, F11), standard keys (find, print, Ctrl+F4), an editing right-click menu, dropped-file paths, UI language (English, Danish, German), a close guard for unsaved work, extra file folders (mounts). No native dependencies. |
+| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file and folder watching, folders (Open Folder, listing with a pattern and subfolders), startup timing, window placement (display, fullscreen, F11), standard keys (find, print, Ctrl+F4), an editing right-click menu, dropped-file paths, UI language (English, Danish, German), a close guard for unsaved work, extra file folders (mounts). No native dependencies. |
 | 🪟 `Atc.Desktop.WebHost.Windows` | Windows window: plain Win32 + WebView2. No WinForms, WPF or WinUI is loaded. |
 | 🐧 `Atc.Desktop.WebHost.Linux` | Linux window: GTK4 + WebKitGTK 6.0 through [GirCore](https://github.com/gircore/gir.core). Needs `libgtk-4-1` and `libwebkitgtk-6.0-4`. |
 
@@ -107,7 +107,7 @@ The full page-side contract (boot object, messages, error codes, versioning) is 
 
 ## 🧪 Sample
 
-`sample/Atc.Desktop.WebHost.Sample` is a text viewer with a tour of the host, one tab per part: the document (open, drop, watch), the window (displays, fullscreen, find, print, close guard, keys), files and frames (a mount, an iframe), the bridge (round trips and event throughput) and a self-test. It's in English, Danish and German. It's also the app the benchmarks run; the tour loads after the first paint, and not at all with `--bench`.
+`sample/Atc.Desktop.WebHost.Sample` is a text viewer with a tour of the host, one tab per part: the document (open, drop, watch), the window (displays, fullscreen, find, print, close guard, keys), files and frames (a folder with its *.md files, a mount, an iframe), the bridge (round trips and event throughput) and a self-test. It's in English, Danish and German. It's also the app the benchmarks run; the tour loads after the first paint, and not at all with `--bench`.
 
 ```shell
 dotnet run --project sample/Atc.Desktop.WebHost.Sample -- benchmarks/fixtures/readme-5k.md
@@ -118,7 +118,7 @@ dotnet run --project sample/Atc.Desktop.WebHost.Sample -- --ui=embedded --devtoo
 
 - **Unit tests:** `dotnet test --project test/Atc.Desktop.WebHost.Tests/Atc.Desktop.WebHost.Tests.csproj`.
 - **End-to-end:** `pwsh test/EndToEnd/Test-EndToEnd.ps1` after a Release build (on a Linux server: `xvfb-run -a pwsh ...`).
-  - The sample's **self-test** (`--selftest`) checks the host's requests, events, error codes, files, mounts and frames in a real window and exits with 1 on a failure. The same checks run from the sample's Self-test tab.
+  - The sample's **self-test** (`--selftest`) checks the host's requests, events, error codes, files, folders, mounts and frames in a real window and exits with 1 on a failure. The same checks run from the sample's Self-test tab.
   - On Windows, `test/EndToEnd/devtools-checks.mjs` adds what the page can't do itself, over WebView2's DevTools protocol: a real file drop and the user closing the window with the close guard on. Needs Node 22.
   - Not automated (they need a person): the Open/Save dialogs, print, the find bar, keys (F11, Ctrl+F, Ctrl+P, Ctrl+F4) and the right-click menu.
 - **Startup smoke test:** `pwsh benchmarks/Test-Startup.ps1`.

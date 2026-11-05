@@ -177,6 +177,7 @@ Atc.Desktop.WebHost.Platform.IHostWindow.Print() -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.SetPlacement(Atc.Desktop.WebHost.Platform.WindowPlacement! placement) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.SetTitle(string! title) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.ShowOpenFileDialogAsync(Atc.Desktop.WebHost.Platform.FileDialogOptions! options) -> System.Threading.Tasks.Task<string?>!
+Atc.Desktop.WebHost.Platform.IHostWindow.ShowOpenFolderDialogAsync(Atc.Desktop.WebHost.Platform.FileDialogOptions! options) -> System.Threading.Tasks.Task<string?>!
 Atc.Desktop.WebHost.Platform.IHostWindow.ShowSaveFileDialogAsync(Atc.Desktop.WebHost.Platform.FileDialogOptions! options) -> System.Threading.Tasks.Task<string?>!
 Atc.Desktop.WebHost.Platform.IHostWindowEvents
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.CreateDocumentScriptAsync() -> System.Threading.Tasks.ValueTask<string!>
@@ -202,6 +203,7 @@ Atc.Desktop.WebHost.WebHostApplication.Bridge.get -> Atc.Desktop.WebHost.Bridge.
 Atc.Desktop.WebHost.WebHostApplication.CommandLine.get -> Atc.Desktop.WebHost.WebHostCommandLine!
 Atc.Desktop.WebHost.WebHostApplication.Dispose() -> void
 Atc.Desktop.WebHost.WebHostApplication.GrantFileAccess(string! filePath) -> void
+Atc.Desktop.WebHost.WebHostApplication.GrantFolderAccess(string! folderPath) -> void
 Atc.Desktop.WebHost.WebHostApplication.IsFileAccessAllowed(string! path) -> bool
 Atc.Desktop.WebHost.WebHostApplication.Language.get -> string!
 Atc.Desktop.WebHost.WebHostApplication.Lifetime.get -> System.Threading.CancellationToken

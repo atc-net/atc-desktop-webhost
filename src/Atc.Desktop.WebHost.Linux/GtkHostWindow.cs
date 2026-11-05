@@ -104,6 +104,23 @@ internal sealed class GtkHostWindow : IHostWindow
         }
     }
 
+    public async Task<string?> ShowOpenFolderDialogAsync(
+        FileDialogOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        using var dialog = CreateDialog(new FileDialogOptions { Title = options.Title });
+        try
+        {
+            var folder = await dialog.SelectFolderAsync(window!).ConfigureAwait(true);
+            return folder?.GetPath();
+        }
+        catch (GLib.GException)
+        {
+            return null;
+        }
+    }
+
     public async Task<string?> ShowSaveFileDialogAsync(
         FileDialogOptions options)
     {

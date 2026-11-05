@@ -132,6 +132,7 @@ window.Tour = (() => {
 
     root.append(
       heading("files.dropTitle"), para("files.drop"),
+      ...folderSection(),
       heading("files.mountTitle"), mountText,
       el("div", { class: "row" }, el("img", { class: "mount-image", src: `${mount}/logo.svg`, alt: "" }), el("code", {}, `${mount}/logo.svg`)),
       fetched,
@@ -154,6 +155,50 @@ window.Tour = (() => {
     fetch(`${mount}/data.json`).then(async (r) => {
       fetched.textContent = `GET ${mount}/data.json → ${r.status}\nCache-Control: ${r.headers.get("cache-control")}\n\n${await r.text()}`;
     }, (e) => { fetched.textContent = String(e); });
+  }
+
+  /** Open Folder: list the *.md files with subfolders, watch the folder, list again on a change. */
+  function folderSection() {
+    const status = el("p", { class: "hint" });
+    const list = el("ul", { class: "folder-list" });
+    const open = el("button", { type: "button", "data-i18n": "files.openFolder" });
+    let folder = null;
+    let listing = null;
+    let changedAt = null;
+
+    const render = () => {
+      if (!listing) return;
+      status.textContent = t("files.folderCount", { count: listing.files.length, folder }) +
+        (changedAt ? ` · ${t("files.folderChanged", { time: changedAt })}` : "");
+      list.replaceChildren(...listing.files.map((f) => el("li", {},
+        el("a", { href: "#", onclick: async (e) => { e.preventDefault(); showTab("document"); app.show(await host.request("document.load", { path: f.path })); } },
+          f.relativePath))));
+      if (listing.files.length === 0) list.append(el("li", { class: "hint" }, t("files.folderEmpty")));
+    };
+    texts.onLanguage(render);
+
+    const load = async () => {
+      listing = await host.request("folder.list", { path: folder, pattern: "*.md", recursive: true, maxFiles: 500 });
+      render();
+    };
+
+    host.on("folder.changed", async (e) => {
+      if (e.folder !== folder) return;
+      changedAt = new Date().toLocaleTimeString();
+      await load();
+    });
+
+    open.addEventListener("click", async () => {
+      const { path } = await host.request("dialog.openFolder", { defaultPath: folder ?? undefined });
+      if (!path) return;
+      if (folder) await host.request("folder.unwatch", { path: folder });
+      folder = path;
+      changedAt = null;
+      await load();
+      await host.request("folder.watch", { path: folder, recursive: true });
+    });
+
+    return [heading("files.folderTitle"), para("files.folder", "hint"), el("div", { class: "row" }, open), status, list];
   }
 
   // --- Bridge ----------------------------------------------------------------------------------------------------

@@ -24,6 +24,20 @@ public sealed class PathScopeTests
     }
 
     [Fact]
+    public void GrantedFolder_AllowsItsFiles_NotItsParentOrSiblings()
+    {
+        var scope = new PathScope(isRestricted: true);
+        scope.GrantFolder(Path.Combine(root, "wiki"));
+
+        scope.IsAllowed(Path.Combine(root, "wiki")).Should().BeTrue();
+        scope.IsAllowed(Path.Combine(root, "wiki", "Home.md")).Should().BeTrue();
+        scope.IsAllowed(Path.Combine(root, "wiki", "sub", "Page.md")).Should().BeTrue();
+        scope.IsAllowed(Path.Combine(root, "other.md")).Should().BeFalse();
+        scope.IsAllowed(Path.Combine(root, "wiki-old", "Home.md")).Should().BeFalse();
+        scope.IsAllowed(Path.Combine(root, "wiki", "..", "other.md")).Should().BeFalse();
+    }
+
+    [Fact]
     public void FileNextToAGrantedFile_IsAllowed()
     {
         var scope = new PathScope(isRestricted: true);

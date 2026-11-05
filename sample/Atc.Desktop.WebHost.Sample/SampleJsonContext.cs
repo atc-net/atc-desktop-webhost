@@ -2,6 +2,7 @@ namespace Atc.Desktop.WebHost.Sample;
 
 /// <summary>Source-generated JSON metadata for the sample's messages.</summary>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(TextDocument))]
 [JsonSerializable(typeof(BurstRequest))]
 [JsonSerializable(typeof(BurstResult))]

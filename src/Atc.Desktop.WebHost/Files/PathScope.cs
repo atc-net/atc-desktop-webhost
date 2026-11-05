@@ -2,7 +2,8 @@ namespace Atc.Desktop.WebHost.Files;
 
 /// <summary>
 /// The files the page may ask the host to read or watch. A file the user chose (command line, a second launch,
-/// an Open or Save dialog) grants its folder and everything below it. Everything else is refused, so a page
+/// an Open or Save dialog) grants its folder and everything below it; a folder the user chose (the Open Folder
+/// dialog) grants that folder and everything below it. Everything else is refused, so a page
 /// (or script injected into it) can't read arbitrary files. Thread-safe.
 /// </summary>
 internal sealed class PathScope
@@ -26,7 +27,17 @@ internal sealed class PathScope
     {
         ArgumentException.ThrowIfNullOrEmpty(filePath);
 
-        var folder = WithTrailingSeparator(Path.GetDirectoryName(Path.GetFullPath(filePath)) ?? Path.GetFullPath(filePath));
+        var fullPath = Path.GetFullPath(filePath);
+        GrantFolder(Path.GetDirectoryName(fullPath) ?? fullPath);
+    }
+
+    /// <summary>Allows the folder itself and everything below it.</summary>
+    /// <param name="folderPath">A folder the user chose.</param>
+    public void GrantFolder(string folderPath)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(folderPath);
+
+        var folder = WithTrailingSeparator(Path.GetFullPath(folderPath));
         lock (gate)
         {
             if (!grantedFolders.Exists(f => folder.StartsWith(f, PathComparison)))
@@ -52,7 +63,8 @@ internal sealed class PathScope
             return false;
         }
 
-        var fullPath = Path.GetFullPath(path);
+        // With a trailing separator, so a granted folder's own path is allowed too.
+        var fullPath = WithTrailingSeparator(Path.GetFullPath(path));
         lock (gate)
         {
             return grantedFolders.Exists(f => fullPath.StartsWith(f, PathComparison));
