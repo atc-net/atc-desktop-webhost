@@ -4,7 +4,7 @@ A fast desktop host for .NET apps with a web frontend: a native window with a we
 
 | Package | What |
 |---|---|
-| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file and folder watching, folders (Open Folder, listing with a pattern and subfolders), startup timing, window placement (display, fullscreen, F11), standard keys (find, print, Ctrl+F4), an editing right-click menu, dropped-file paths, UI language (English, Danish, German), a close guard for unsaved work, extra file folders (mounts). No native dependencies. |
+| 🧠 `Atc.Desktop.WebHost` | Core: bridge, startup pipeline, single instance, settings, file and folder watching, folders (Open Folder, listing with a pattern and subfolders), reopening the files and folders the user chose at the next start, startup timing, window placement (display, fullscreen, F11), standard keys (find, print, Ctrl+F4), an editing right-click menu, dropped-file paths, UI language (English, Danish, German), a close guard for unsaved work, extra file folders (mounts). No native dependencies. |
 | 🪟 `Atc.Desktop.WebHost.Windows` | Windows window: plain Win32 + WebView2. No WinForms, WPF or WinUI is loaded. |
 | 🐧 `Atc.Desktop.WebHost.Linux` | Linux window: GTK4 + WebKitGTK 6.0 through [GirCore](https://github.com/gircore/gir.core). Needs `libgtk-4-1` and `libwebkitgtk-6.0-4`. |
 

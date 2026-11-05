@@ -204,6 +204,8 @@ Atc.Desktop.WebHost.WebHostApplication.CommandLine.get -> Atc.Desktop.WebHost.We
 Atc.Desktop.WebHost.WebHostApplication.Dispose() -> void
 Atc.Desktop.WebHost.WebHostApplication.GrantFileAccess(string! filePath) -> void
 Atc.Desktop.WebHost.WebHostApplication.GrantFolderAccess(string! folderPath) -> void
+Atc.Desktop.WebHost.WebHostOptions.RememberFileAccess.get -> bool
+Atc.Desktop.WebHost.WebHostOptions.RememberFileAccess.init -> void
 Atc.Desktop.WebHost.WebHostApplication.IsFileAccessAllowed(string! path) -> bool
 Atc.Desktop.WebHost.WebHostApplication.Language.get -> string!
 Atc.Desktop.WebHost.WebHostApplication.Lifetime.get -> System.Threading.CancellationToken

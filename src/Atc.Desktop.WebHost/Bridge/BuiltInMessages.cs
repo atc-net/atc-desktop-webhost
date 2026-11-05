@@ -58,6 +58,12 @@ internal static class BuiltInMessages
         string Path,
         bool? Recursive);
 
+    /// <summary>A file or folder the user chose, remembered across runs (<c>access.list</c>).</summary>
+    internal sealed record RememberedPath(
+        string Path,
+        bool IsFolder,
+        DateTime Used);
+
     internal sealed record FolderChangedEvent(
         string Folder,
         IReadOnlyList<string> Paths,

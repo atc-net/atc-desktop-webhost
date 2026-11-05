@@ -172,7 +172,7 @@ public sealed partial class WebHostApplication
                 .ConfigureAwait(true);
             if (path is not null)
             {
-                pathScope.GrantFolder(path);
+                GrantChosen(path, isFolder: true);
             }
 
             return JsonPayload.From(new BuiltInMessages.FileDialogResult(path), BridgeJsonContext.Default.FileDialogResult);
@@ -217,6 +217,22 @@ public sealed partial class WebHostApplication
 
     private void RegisterFolderHandlers()
     {
+        Bridge.Handle("access.list", (_, _) => ValueTask.FromResult(JsonPayload.From(
+            rememberedAccess?.GetAll() ?? [],
+            BridgeJsonContext.Default.IReadOnlyListRememberedPath)));
+
+        Bridge.Handle("access.forget", (request, _) =>
+        {
+            var path = request.Deserialize(BridgeJsonContext.Default.PathRequest).Path;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new BridgeException("bad_request", "A path is needed.");
+            }
+
+            rememberedAccess?.Forget(path);
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+
         Bridge.Handle("folder.list", async (request, cancellationToken) =>
         {
             var payload = request.Deserialize(BridgeJsonContext.Default.FolderListRequest);
@@ -261,6 +277,31 @@ public sealed partial class WebHostApplication
     private void GrantPicked(string? path)
     {
         if (path is not null)
+        {
+            GrantChosen(path, isFolder: false);
+        }
+    }
+
+    /// <summary>Gives the page a path the user chose, and remembers it for the next run.</summary>
+    /// <param name="path">The file or folder.</param>
+    /// <param name="isFolder">True for a folder.</param>
+    private void GrantChosen(
+        string path,
+        bool isFolder)
+    {
+        GrantAccess(path, isFolder);
+        rememberedAccess?.Record(path, isFolder);
+    }
+
+    private void GrantAccess(
+        string path,
+        bool isFolder)
+    {
+        if (isFolder)
+        {
+            pathScope.GrantFolder(path);
+        }
+        else
         {
             pathScope.Grant(path);
         }

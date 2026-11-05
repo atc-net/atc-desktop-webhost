@@ -304,6 +304,14 @@ window.SelfTest = (() => {
     }
   });
 
+  test("access.list remembers the command-line file", async () => {
+    if (host.boot.files.length === 0) throw new Skip("started without a file");
+    const list = await host.request("access.list");
+    assert(list.some((e) => samePath(e.path, host.boot.files[0]) && e.isFolder === false && !Number.isNaN(Date.parse(e.used))),
+      `list ${JSON.stringify(list)}`);
+    equal(await errorCode(host.request("access.forget", { path: "" })), "bad_request", "empty path");
+  });
+
   test("folder.watch outside: forbidden", async () => {
     const parent = files.wikiFolder.replace(/[\\/][^\\/]+$/, "");
     equal(await errorCode(host.request("folder.watch", { path: parent, recursive: true })), "forbidden", "code");

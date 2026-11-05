@@ -23,6 +23,7 @@ namespace Atc.Desktop.WebHost.Bridge;
 [JsonSerializable(typeof(BuiltInMessages.FolderListResult))]
 [JsonSerializable(typeof(BuiltInMessages.FolderWatchRequest))]
 [JsonSerializable(typeof(BuiltInMessages.FolderChangedEvent))]
+[JsonSerializable(typeof(IReadOnlyList<BuiltInMessages.RememberedPath>))]
 [JsonSerializable(typeof(BuiltInMessages.DocumentError))]
 [JsonSerializable(typeof(BuiltInMessages.FirstPaintRequest))]
 [JsonSerializable(typeof(BuiltInMessages.HostInfo))]
