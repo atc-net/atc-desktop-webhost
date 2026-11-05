@@ -385,33 +385,75 @@ internal sealed class GtkHostWindow : IHostWindow
            uri.StartsWith(FilesOrigin, StringComparison.Ordinal) &&
            uri[FilesOrigin.Length] == '/';
 
-    /// <summary>The app's page stays in the window; links to other sites open in the default browser.</summary>
+    /// <summary>
+    /// The app's page stays in the window; links to other sites open in the default browser. Iframes may show web
+    /// pages (e.g. a video embed). WebKit asks about iframe navigations too and can't say which frame navigates,
+    /// so web addresses pass the navigation step and the main frame is checked when the response arrives.
+    /// </summary>
     /// <returns>True when the navigation was handled here (ignored).</returns>
     private static bool OnDecidePolicy(
         WebKit.PolicyDecision decision,
         WebKit.PolicyDecisionType type)
     {
-        if (type is not (WebKit.PolicyDecisionType.NavigationAction or WebKit.PolicyDecisionType.NewWindowAction) ||
-            decision is not WebKit.NavigationPolicyDecision navigation)
+        switch (type)
         {
-            return false;
-        }
+            case WebKit.PolicyDecisionType.NewWindowAction when decision is WebKit.NavigationPolicyDecision newWindow:
+            {
+                var uri = newWindow.GetNavigationAction().GetRequest().GetUri();
+                decision.Ignore();
+                if (!IsOnFilesOrigin(uri))
+                {
+                    ExternalLinks.TryOpen(uri);
+                }
 
-        var uri = navigation.GetNavigationAction().GetRequest().GetUri();
-        var isMount = IsOnFilesOrigin(uri);
-        if (type == WebKit.PolicyDecisionType.NavigationAction && (IsOnOrigin(uri) || isMount))
-        {
-            // The app's page, or a mounted page in an iframe. Messages still only come from the app's page.
-            return false;
-        }
+                return true;
+            }
 
-        decision.Ignore();
-        if (!isMount)
-        {
-            ExternalLinks.TryOpen(uri);
-        }
+            case WebKit.PolicyDecisionType.NavigationAction when decision is WebKit.NavigationPolicyDecision navigation:
+            {
+                var action = navigation.GetNavigationAction();
+                var uri = action.GetRequest().GetUri();
+                if (action.GetNavigationType() == WebKit.NavigationType.LinkClicked && !IsOnOrigin(uri) && !IsOnFilesOrigin(uri))
+                {
+                    // A clicked link to another site (in the app's page or in an embed) opens in the browser.
+                    decision.Ignore();
+                    ExternalLinks.TryOpen(uri);
+                    return true;
+                }
 
-        return true;
+                if (FramePolicy.MayLoadInFrame(uri, Origin, FilesOrigin))
+                {
+                    return false;
+                }
+
+                // Other schemes (mailto:, file:, …): never inside the app.
+                decision.Ignore();
+                ExternalLinks.TryOpen(uri);
+                return true;
+            }
+
+            case WebKit.PolicyDecisionType.Response when decision is WebKit.ResponsePolicyDecision response &&
+                                                          response.IsMainFrameMainResource():
+            {
+                var uri = response.GetRequest().GetUri();
+                if (IsOnOrigin(uri))
+                {
+                    return false;
+                }
+
+                // The main frame is leaving the app: show it in the browser instead. Messages only come from the app's page.
+                decision.Ignore();
+                if (!IsOnFilesOrigin(uri))
+                {
+                    ExternalLinks.TryOpen(uri);
+                }
+
+                return true;
+            }
+
+            default:
+                return false;
+        }
     }
 
     private async Task LoadPageAsync(WebKit.UserContentManager contentManager)

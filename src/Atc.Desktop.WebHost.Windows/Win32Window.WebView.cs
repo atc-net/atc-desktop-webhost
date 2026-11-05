@@ -89,6 +89,14 @@ internal sealed partial class Win32Window
         view.WebMessageReceived += OnWebMessageReceived;
         view.NavigationStarting += OnNavigationStarting;
         view.NewWindowRequested += OnNewWindowRequested;
+        view.FrameNavigationStarting += (_, e) =>
+        {
+            // Iframes may show web pages and inline content, never file: or other programs' schemes.
+            if (!FramePolicy.MayLoadInFrame(e.Uri, FrontendSource.Origin, FrontendSource.FilesOrigin))
+            {
+                e.Cancel = true;
+            }
+        };
         view.ProcessFailed += (_, _) => events.OnPageUnloaded();
         view.NavigationCompleted += (_, e) => events.Mark(e.IsSuccess ? "navigationCompleted" : "navigationFailed");
         view.DOMContentLoaded += (_, _) => events.Mark("domContentLoaded");

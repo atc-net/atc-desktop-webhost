@@ -151,6 +151,9 @@ document.addEventListener("drop", async (e) => {
 });
 ```
 
+### Iframes
+
+An iframe may load web pages (http, https), the app's own origins and inline content (`about:`, `data:`, `blob:`). Other addresses (`file:`, `mailto:`, other programs' schemes) are refused. A link clicked to another site opens in the browser.
 
 ### Unsaved work (close guard)
 

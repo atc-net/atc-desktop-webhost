@@ -142,6 +142,18 @@ public sealed class WebHostApplicationTests : IDisposable
         sent.Should().BeEmpty();
     }
 
+    [Fact]
+    public void IsFileAccessAllowed_FollowsTheGrantedFolders()
+    {
+        var file = Path.Combine(folder, "notes.md");
+        app.IsFileAccessAllowed(file).Should().BeFalse();
+
+        app.GrantFileAccess(Path.Combine(folder, "readme.md"));
+
+        app.IsFileAccessAllowed(file).Should().BeTrue();
+        app.IsFileAccessAllowed(Path.Combine(folder, "..", "outside.md")).Should().BeFalse();
+    }
+
     public void Dispose()
     {
         app.Dispose();

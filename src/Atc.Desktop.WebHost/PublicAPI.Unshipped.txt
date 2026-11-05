@@ -200,6 +200,7 @@ Atc.Desktop.WebHost.WebHostApplication.Bridge.get -> Atc.Desktop.WebHost.Bridge.
 Atc.Desktop.WebHost.WebHostApplication.CommandLine.get -> Atc.Desktop.WebHost.WebHostCommandLine!
 Atc.Desktop.WebHost.WebHostApplication.Dispose() -> void
 Atc.Desktop.WebHost.WebHostApplication.GrantFileAccess(string! filePath) -> void
+Atc.Desktop.WebHost.WebHostApplication.IsFileAccessAllowed(string! path) -> bool
 Atc.Desktop.WebHost.WebHostApplication.Lifetime.get -> System.Threading.CancellationToken
 Atc.Desktop.WebHost.WebHostApplication.Options.get -> Atc.Desktop.WebHost.WebHostOptions!
 Atc.Desktop.WebHost.WebHostApplication.Paths.get -> Atc.Desktop.WebHost.Hosting.HostPaths!

@@ -81,6 +81,15 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     public void GrantFileAccess(string filePath)
         => pathScope.Grant(filePath);
 
+    /// <summary>
+    /// Checks whether the page may use a file (read, watch). Apps use it before doing something with a path the page
+    /// sent, for example saving: the same rule as the host's own file requests.
+    /// </summary>
+    /// <param name="path">Any path; relative segments are resolved first.</param>
+    /// <returns><see langword="true"/> when the path is in or below a folder the user opened.</returns>
+    public bool IsFileAccessAllowed(string path)
+        => pathScope.IsAllowed(path);
+
     /// <summary>Runs the app until the window closes.</summary>
     /// <param name="args">The command-line arguments.</param>
     /// <returns>The process exit code.</returns>
