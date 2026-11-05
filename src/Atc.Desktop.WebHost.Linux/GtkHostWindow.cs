@@ -31,6 +31,7 @@ internal sealed class GtkHostWindow : IHostWindow
     private MountTable? mounts;
     private bool isClosed;
     private bool closeFromCode;
+    private WindowPlacement activePlacement;
 
     private GtkHostWindow(
         HostWindowOptions options,
@@ -40,7 +41,11 @@ internal sealed class GtkHostWindow : IHostWindow
         this.options = options;
         this.events = events;
         this.application = application;
+        activePlacement = options.Placement;
     }
+
+    public WindowPlacement Placement
+        => activePlacement;
 
     public static int Run(
         HostWindowOptions options,
@@ -136,10 +141,8 @@ internal sealed class GtkHostWindow : IHostWindow
         if (!placement.Fullscreen)
         {
             window.Unfullscreen();
-            return;
         }
-
-        if (GtkMonitors.Find(placement.Monitor) is { } monitor)
+        else if (GtkMonitors.Find(placement.Monitor) is { } monitor)
         {
             window.FullscreenOnMonitor(monitor);
         }
@@ -147,6 +150,67 @@ internal sealed class GtkHostWindow : IHostWindow
         {
             window.Fullscreen();
         }
+
+        activePlacement = placement;
+        events.OnPlacementChanged(placement);
+    }
+
+    /// <summary>WebKitGTK has no find bar; the page keeps Ctrl+F on Linux.</summary>
+    /// <param name="text">Ignored.</param>
+    public void Find(string? text)
+    {
+    }
+
+    public void Print()
+    {
+        if (webView is null || window is null)
+        {
+            return;
+        }
+
+        using var operation = WebKit.PrintOperation.New(webView);
+        operation.RunDialog(window);
+    }
+
+    /// <summary>Standard keys (<see cref="HostKeys"/>) before the page sees them: F11, Ctrl+P, Ctrl+F4.</summary>
+    /// <returns><see langword="true"/> when the key was handled here.</returns>
+    private bool OnKeyPressed(
+        uint key,
+        Gdk.ModifierType state)
+    {
+        const uint keyF4 = 0xFFC1;
+        const uint keyF11 = 0xFFC8;
+        const uint keyLowerP = 0x70;
+        const uint keyUpperP = 0x50;
+
+        var ctrl = state.HasFlag(Gdk.ModifierType.ControlMask);
+        var keys = options.Keys;
+        if (key == keyF11 && !ctrl && keys.HasFlag(HostKeys.Fullscreen) && window is not null)
+        {
+            // GTK puts the window back to its earlier size itself.
+            SetPlacement(new WindowPlacement
+            {
+                Monitor = activePlacement.Monitor,
+                Fullscreen = !window.IsFullscreen(),
+                ShowInTaskbar = activePlacement.ShowInTaskbar,
+            });
+            return true;
+        }
+
+        if (ctrl && key is keyLowerP or keyUpperP && keys.HasFlag(HostKeys.Print))
+        {
+            Print();
+            return true;
+        }
+
+        if (ctrl && key == keyF4 && keys.HasFlag(HostKeys.Close))
+        {
+            // Like the title-bar button: the close guard is asked.
+            window?.Close();
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>GApplication ids must look like "org.example.App": letters, digits, '_' and at least one dot.</summary>
@@ -203,6 +267,10 @@ internal sealed class GtkHostWindow : IHostWindow
         window = Gtk.ApplicationWindow.New(application);
         window.SetTitle(options.Title);
         window.SetDefaultSize(options.Width, options.Height);
+        var keyController = Gtk.EventControllerKey.New();
+        keyController.SetPropagationPhase(Gtk.PropagationPhase.Capture);
+        keyController.OnKeyPressed += (_, e) => OnKeyPressed(e.Keyval, e.State);
+        window.AddController(keyController);
         if (!options.Placement.IsDefault)
         {
             SetPlacement(options.Placement);

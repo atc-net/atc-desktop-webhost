@@ -42,6 +42,9 @@ public sealed class HostWindowOptions
     /// <summary>Gets where the window opens. Applied before the window is shown, so it doesn't jump.</summary>
     public WindowPlacement Placement { get; init; } = WindowPlacement.Default;
 
+    /// <summary>Gets the standard keys the window handles before the page. See <see cref="HostKeys"/>.</summary>
+    public HostKeys Keys { get; init; } = HostKeys.All;
+
     /// <summary>Gets the extra file folders served on the files origin. See <see cref="FrontendMount"/>.</summary>
     public IReadOnlyList<FrontendMount> Mounts { get; init; } = [];
 }

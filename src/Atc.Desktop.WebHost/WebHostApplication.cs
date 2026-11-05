@@ -20,7 +20,6 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     private readonly FileWatchService fileWatch;
     private readonly PathScope pathScope;
     private readonly CloseGuard closeGuard = new(TimeProvider.System);
-    private WindowPlacement? placement;
     private WebHostCommandLine commandLine = WebHostCommandLine.Parse([]);
     private Task<JsonPayload>? initialDocument;
     private SingleInstance? singleInstance;
@@ -142,6 +141,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             IconPath = Options.IconPath,
             Placement = Options.Placement,
             Mounts = Options.Mounts,
+            Keys = Options.Keys,
         };
 
         Clock.Mark("platformRun");
@@ -238,6 +238,13 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     /// <inheritdoc />
     void IHostWindowEvents.OnPageUnloaded()
         => closeGuard.Reset();
+
+    /// <inheritdoc />
+    void IHostWindowEvents.OnPlacementChanged(WindowPlacement placement)
+        => Bridge.Emit(
+            "window.placementChanged",
+            new BuiltInMessages.PlacementChangedEvent(placement.Monitor, placement.Fullscreen, placement.ShowInTaskbar),
+            BridgeJsonContext.Default.PlacementChangedEvent);
 
     /// <inheritdoc />
     void IHostWindowEvents.OnClosed()

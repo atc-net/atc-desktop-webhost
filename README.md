@@ -97,7 +97,7 @@ Built-in requests:
 |---|---|
 | Host | `host.ready`, `host.info`, `host.document`, `host.firstPaint` |
 | Settings | `settings.get`, `settings.set` |
-| Window and dialogs | `window.setTitle`, `window.getMonitors`, `window.setPlacement`, `window.setCloseGuard`, `window.close`, `dialog.openFile`, `dialog.saveFile` |
+| Window and dialogs | `window.setTitle`, `window.getMonitors`, `window.setPlacement`, `window.setCloseGuard`, `window.close`, `page.find`, `page.print`, `dialog.openFile`, `dialog.saveFile` |
 | Documents and files | `document.load`, `file.watch`, `file.unwatch` |
 | Shell | `shell.openExternal` |
 

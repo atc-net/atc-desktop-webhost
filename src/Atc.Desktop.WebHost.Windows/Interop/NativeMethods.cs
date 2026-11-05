@@ -44,6 +44,14 @@ internal static partial class NativeMethods
     public const uint SwpFrameChanged = 0x0020;
     public const uint MonitorInfoPrimary = 0x00000001;
     public const int MdtEffectiveDpi = 0;
+    public const uint SwpNoMove = 0x0002;
+    public const int VkF4 = 0x73;
+    public const int VkF11 = 0x7A;
+    public const int VkF = 0x46;
+    public const int VkP = 0x50;
+    public const int VkEscape = 0x1B;
+    public const int VkControl = 0x11;
+    public const int VkMenu = 0x12;
 
     public const uint OfnOverwritePrompt = 0x00000002;
     public const uint OfnNoChangeDir = 0x00000008;
@@ -251,4 +259,19 @@ internal static partial class NativeMethods
         nint hwnd,
         int index,
         nint value);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool GetWindowPlacement(
+        nint hwnd,
+        ref WindowPlacementData placement);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool SetWindowPlacement(
+        nint hwnd,
+        in WindowPlacementData placement);
+
+    [LibraryImport("user32.dll")]
+    public static partial short GetKeyState(int virtualKey);
 }

@@ -41,6 +41,8 @@ internal sealed partial class Win32Window
             controller.DefaultBackgroundColor = Color.FromArgb(255, color.R, color.G, color.B);
             OnResized(minimized: NativeMethods.IsIconic(hwnd));
             webView = controller.CoreWebView2;
+            controller.AcceleratorKeyPressed += OnAcceleratorKeyPressed;
+            webView.ContainsFullScreenElementChanged += (_, _) => OnFullscreenElementChanged();
             ConfigureWebView(webView);
             MapFrontend(webView);
             events.Mark("webviewConfigured");
@@ -67,6 +69,13 @@ internal sealed partial class Win32Window
         var settings = view.Settings;
         settings.AreDevToolsEnabled = options.DevToolsEnabled;
         settings.AreDefaultContextMenusEnabled = options.DevToolsEnabled;
+        settings.AreBrowserAcceleratorKeysEnabled = options.DevToolsEnabled;
+        settings.IsStatusBarEnabled = false;
+        settings.IsPasswordAutosaveEnabled = false;
+        settings.IsGeneralAutofillEnabled = false;
+        settings.IsSwipeNavigationEnabled = false;
+        settings.AreHostObjectsAllowed = false;
+
         settings.AreBrowserAcceleratorKeysEnabled = options.DevToolsEnabled;
         settings.IsStatusBarEnabled = false;
         settings.IsPasswordAutosaveEnabled = false;

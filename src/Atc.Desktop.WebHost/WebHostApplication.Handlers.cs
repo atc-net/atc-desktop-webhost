@@ -111,14 +111,14 @@ public sealed partial class WebHostApplication
         Bridge.Handle("window.setPlacement", (request, _) =>
         {
             var change = request.Deserialize(BridgeJsonContext.Default.PlacementRequest);
-            var current = placement ?? Options.Placement;
-            placement = new WindowPlacement
+            var window = RequireWindow();
+            var current = window.Placement;
+            window.SetPlacement(new WindowPlacement
             {
                 Monitor = change.Monitor ?? current.Monitor,
                 Fullscreen = change.Fullscreen ?? current.Fullscreen,
                 ShowInTaskbar = change.ShowInTaskbar ?? current.ShowInTaskbar,
-            };
-            RequireWindow().SetPlacement(placement);
+            });
             return ValueTask.FromResult(JsonPayload.Null);
         });
 
@@ -132,6 +132,25 @@ public sealed partial class WebHostApplication
 
     private void RegisterDialogHandlers()
     {
+        Bridge.Handle("page.find", async (request, _) =>
+        {
+            var text = request.Payload.ValueKind == JsonValueKind.Object
+                ? request.Deserialize(BridgeJsonContext.Default.FindRequest).Text
+                : null;
+
+            // Leave the webview's message callback before the find bar opens (as for dialogs).
+            await Task.Yield();
+            RequireWindow().Find(text);
+            return JsonPayload.Null;
+        });
+
+        Bridge.Handle("page.print", async (_, _) =>
+        {
+            await Task.Yield();
+            RequireWindow().Print();
+            return JsonPayload.Null;
+        });
+
         Bridge.Handle("dialog.openFile", async (request, _) =>
         {
             // Leave the webview's message callback first: a modal dialog runs its own message loop,

@@ -11,6 +11,8 @@ namespace Atc.Desktop.WebHost.Bridge;
 [JsonSerializable(typeof(BuiltInMessages.TitleRequest))]
 [JsonSerializable(typeof(BuiltInMessages.UrlRequest))]
 [JsonSerializable(typeof(BuiltInMessages.CloseGuardRequest))]
+[JsonSerializable(typeof(BuiltInMessages.FindRequest))]
+[JsonSerializable(typeof(BuiltInMessages.PlacementChangedEvent))]
 [JsonSerializable(typeof(BuiltInMessages.PlacementRequest))]
 [JsonSerializable(typeof(IReadOnlyList<HostMonitor>))]
 [JsonSerializable(typeof(BuiltInMessages.FileDialogRequest))]

@@ -82,6 +82,13 @@ Atc.Desktop.WebHost.Platform.HostColor.HostColor(byte R, byte G, byte B) -> void
 Atc.Desktop.WebHost.Platform.HostColor.R.get -> byte
 Atc.Desktop.WebHost.Platform.HostColor.R.init -> void
 Atc.Desktop.WebHost.Platform.HostColor.ToCss() -> string!
+Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostKeys.All = Atc.Desktop.WebHost.Platform.HostKeys.Fullscreen | Atc.Desktop.WebHost.Platform.HostKeys.Find | Atc.Desktop.WebHost.Platform.HostKeys.Print | Atc.Desktop.WebHost.Platform.HostKeys.Close -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostKeys.Close = 8 -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostKeys.Find = 2 -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostKeys.Fullscreen = 1 -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostKeys.None = 0 -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostKeys.Print = 4 -> Atc.Desktop.WebHost.Platform.HostKeys
 Atc.Desktop.WebHost.Platform.HostMonitor
 Atc.Desktop.WebHost.Platform.HostMonitor.<Clone>$() -> Atc.Desktop.WebHost.Platform.HostMonitor!
 Atc.Desktop.WebHost.Platform.HostMonitor.Bounds.get -> Atc.Desktop.WebHost.Platform.HostRect
@@ -132,6 +139,8 @@ Atc.Desktop.WebHost.Platform.HostWindowOptions.IconPath.get -> string?
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IconPath.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IsDark.get -> bool
 Atc.Desktop.WebHost.Platform.HostWindowOptions.IsDark.init -> void
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Keys.get -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.Platform.HostWindowOptions.Keys.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Mounts.get -> System.Collections.Generic.IReadOnlyList<Atc.Desktop.WebHost.Frontend.FrontendMount!>!
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Mounts.init -> void
 Atc.Desktop.WebHost.Platform.HostWindowOptions.Placement.get -> Atc.Desktop.WebHost.Platform.WindowPlacement!
@@ -152,8 +161,11 @@ Atc.Desktop.WebHost.Platform.IHostPlatform.Run(Atc.Desktop.WebHost.Platform.Host
 Atc.Desktop.WebHost.Platform.IHostWindow
 Atc.Desktop.WebHost.Platform.IHostWindow.BringToFront() -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.Close() -> void
+Atc.Desktop.WebHost.Platform.IHostWindow.Find(string? text) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.GetBrowserProcessIds() -> System.Collections.Generic.IReadOnlyList<int>!
+Atc.Desktop.WebHost.Platform.IHostWindow.Placement.get -> Atc.Desktop.WebHost.Platform.WindowPlacement!
 Atc.Desktop.WebHost.Platform.IHostWindow.PostMessage(string! json) -> void
+Atc.Desktop.WebHost.Platform.IHostWindow.Print() -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.SetPlacement(Atc.Desktop.WebHost.Platform.WindowPlacement! placement) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.SetTitle(string! title) -> void
 Atc.Desktop.WebHost.Platform.IHostWindow.ShowOpenFileDialogAsync(Atc.Desktop.WebHost.Platform.FileDialogOptions! options) -> System.Threading.Tasks.Task<string?>!
@@ -165,6 +177,7 @@ Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnClosed() -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnCloseRequested() -> bool
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnPageUnloaded() -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnMessage(string! message) -> void
+Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnPlacementChanged(Atc.Desktop.WebHost.Platform.WindowPlacement! placement) -> void
 Atc.Desktop.WebHost.Platform.IHostWindowEvents.OnWindowCreated(Atc.Desktop.WebHost.Platform.IHostWindow! window, System.Threading.SynchronizationContext! uiContext) -> void
 Atc.Desktop.WebHost.Platform.WindowPlacement
 Atc.Desktop.WebHost.Platform.WindowPlacement.Fullscreen.get -> bool
@@ -219,6 +232,8 @@ Atc.Desktop.WebHost.WebHostOptions.IconPath.get -> string?
 Atc.Desktop.WebHost.WebHostOptions.IconPath.init -> void
 Atc.Desktop.WebHost.WebHostOptions.InlineDocumentWait.get -> System.TimeSpan
 Atc.Desktop.WebHost.WebHostOptions.InlineDocumentWait.init -> void
+Atc.Desktop.WebHost.WebHostOptions.Keys.get -> Atc.Desktop.WebHost.Platform.HostKeys
+Atc.Desktop.WebHost.WebHostOptions.Keys.init -> void
 Atc.Desktop.WebHost.WebHostOptions.LightBackground.get -> Atc.Desktop.WebHost.Platform.HostColor
 Atc.Desktop.WebHost.WebHostOptions.LightBackground.init -> void
 Atc.Desktop.WebHost.WebHostOptions.LoadDocument.get -> Atc.Desktop.WebHost.DocumentLoader?

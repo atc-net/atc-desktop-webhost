@@ -34,7 +34,17 @@ public interface IHostWindow
     /// <returns>The process ids; empty when unknown.</returns>
     IReadOnlyList<int> GetBrowserProcessIds();
 
+    /// <summary>Gets where the window is now: display, fullscreen and taskbar (changed by F11 too).</summary>
+    WindowPlacement Placement { get; }
+
     /// <summary>Moves the window to a display, into or out of fullscreen. See <see cref="WindowPlacement"/>.</summary>
     /// <param name="placement">Where the window goes.</param>
     void SetPlacement(WindowPlacement placement);
+
+    /// <summary>Opens the webview's find bar (Windows). Does nothing where there is none (Linux).</summary>
+    /// <param name="text">The text to search for, or <see langword="null"/> for an empty find bar.</param>
+    void Find(string? text);
+
+    /// <summary>Opens the print dialog for the page.</summary>
+    void Print();
 }

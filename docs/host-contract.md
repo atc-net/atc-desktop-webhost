@@ -93,7 +93,9 @@ All messages are JSON text.
 | `window.setCloseGuard` | `{ enabled }` | `null`. While enabled, the user's close sends `window.closeRequested` instead of closing (see "Unsaved work") |
 | `window.close` | – | `null`. Closes the window, also when the close guard is on |
 | `window.getMonitors` | – | `[{ number, bounds: { x, y, width, height }, workArea, isPrimary, scale }]`, numbered left to right, physical pixels |
-| `window.setPlacement` | `{ monitor?, fullscreen?, showInTaskbar? }` | `null`. Moves the window; fields left out keep their value. Linux: only fullscreen on a display (Wayland can't place a normal window or hide it from the taskbar) |
+| `window.setPlacement` | `{ monitor?, fullscreen?, showInTaskbar? }` | `null`. Moves the window; fields left out keep the window's current value (F11 changes it too). Leaving fullscreen brings the window back to its earlier size and place. Linux: only fullscreen on a display (Wayland can't place a normal window or hide it from the taskbar) |
+| `page.find` | `{ text? }` | `null`. Opens the find bar (Windows). Linux has none: the page keeps Ctrl+F there |
+| `page.print` | – | `null`. Opens the print dialog |
 | `window.closeAck` | – | `null`. Sent by the host script when `window.closeRequested` arrives; pages don't send it |
 | `dialog.openFile` | `{ title?, defaultPath?, filters?: [{ name, patterns }] }` | `{ path }`, `path` is `null` when cancelled |
 | `dialog.saveFile` | Same as `dialog.openFile` | `{ path }` |
@@ -115,6 +117,21 @@ An app can allow more with `WebHostApplication.GrantFileAccess(path)`, for examp
 | `document.opened` | The app's document | A second launch handed over a file |
 | `file.changed` | `{ path, kind: "changed" \| "deleted" }` | A watched file changed. An atomic save (write to a temp file, rename over) is reported as `changed` |
 | `window.closeRequested` | `null` | The user tried to close the window while the close guard is on |
+| `window.placementChanged` | `{ monitor?, fullscreen, showInTaskbar }` | The window went into or out of fullscreen (F11, a video, the app) or moved to another display |
+
+### Keys the host handles
+
+These keys are handled before the page sees them (`WebHostOptions.Keys`, all on by default). An app can leave any out; a kiosk app should leave out F11.
+
+| Key | What | Linux |
+|---|---|---|
+| F11 | Fullscreen without a frame. F11 again: back to the earlier size and place (a maximized window comes back maximized) | ✅ |
+| Ctrl+F | The find bar | The page gets the key |
+| Ctrl+P | The print dialog | ✅ |
+| Ctrl+F4 | Close, like the title-bar button: with the close guard on, the page is asked first | ✅ |
+
+When a page element goes fullscreen (a video's fullscreen button), the window goes fullscreen too and comes back when the element leaves. Whoever started fullscreen ends it: a video ending its fullscreen doesn't undo F11. Esc ends a video's fullscreen.
+
 
 ### Unsaved work (close guard)
 

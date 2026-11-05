@@ -37,6 +37,10 @@ public interface IHostWindowEvents
     /// <summary>The page is gone: it reloaded, navigated within the app, or its web process failed.</summary>
     void OnPageUnloaded();
 
+    /// <summary>The window went into or out of fullscreen, or moved to another display (F11, a video, the app).</summary>
+    /// <param name="placement">The new placement.</param>
+    void OnPlacementChanged(WindowPlacement placement);
+
     /// <summary>The window is closing. The webview may already be gone.</summary>
     void OnClosed();
 }

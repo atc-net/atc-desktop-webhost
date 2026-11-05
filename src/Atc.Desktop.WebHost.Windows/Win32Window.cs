@@ -252,10 +252,9 @@ internal sealed partial class Win32Window : IHostWindow
 
     private unsafe void OnDpiChanged(nint lParam)
     {
-        if (activePlacement.Fullscreen)
+        // The suggested rect would rescale the window; a fullscreen window keeps covering its display.
+        if (KeepFullscreenOnDpiChange())
         {
-            // The suggested rect would rescale the window; a fullscreen window keeps filling its display.
-            ApplyPlacement();
             return;
         }
 

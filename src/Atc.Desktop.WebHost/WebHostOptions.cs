@@ -42,6 +42,12 @@ public sealed class WebHostOptions
     public WindowPlacement Placement { get; init; } = WindowPlacement.Default;
 
     /// <summary>
+    /// Gets the standard keys the host handles before the page: F11 fullscreen, Ctrl+F find, Ctrl+P print and Ctrl+F4 close.
+    /// A kiosk app may leave out <see cref="HostKeys.Fullscreen"/> so a stray F11 can't leave fullscreen.
+    /// </summary>
+    public HostKeys Keys { get; init; } = HostKeys.All;
+
+    /// <summary>
     /// Gets extra file folders the page can load from a second private origin (for example the document's images).
     /// See <see cref="FrontendMount"/>. The app's own frontend is not affected.
     /// </summary>

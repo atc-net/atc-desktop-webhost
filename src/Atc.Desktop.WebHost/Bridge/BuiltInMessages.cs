@@ -11,6 +11,13 @@ internal static class BuiltInMessages
 
     internal sealed record CloseGuardRequest(bool Enabled);
 
+    internal sealed record FindRequest(string? Text);
+
+    internal sealed record PlacementChangedEvent(
+        int? Monitor,
+        bool Fullscreen,
+        bool ShowInTaskbar);
+
     internal sealed record PlacementRequest(
         int? Monitor,
         bool? Fullscreen,

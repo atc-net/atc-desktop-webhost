@@ -85,6 +85,31 @@ public sealed class WebHostApplicationTests : IDisposable
         ((IHostWindowEvents)app).OnCloseRequested().Should().BeTrue();
     }
 
+    [Fact]
+    public async Task SetPlacement_KeepsWhatTheWindowHasForMissingFields()
+    {
+        var window = Substitute.For<IHostWindow>();
+        window.Placement.Returns(new WindowPlacement { Monitor = 2, Fullscreen = true, ShowInTaskbar = false });
+        ((IHostWindowEvents)app).OnWindowCreated(window, new SynchronizationContext());
+
+        await app.Bridge.DispatchAsync(Request("window.setPlacement", new JsonObject { ["fullscreen"] = false }));
+
+        window.Received(1).SetPlacement(Arg.Is<WindowPlacement>(p => p.Monitor == 2 && !p.Fullscreen && !p.ShowInTaskbar));
+    }
+
+    [Fact]
+    public async Task PlacementChanged_IsSentToThePage()
+    {
+        await app.Bridge.DispatchAsync(Request("host.ready", payload: null));
+        sent.Clear();
+
+        ((IHostWindowEvents)app).OnPlacementChanged(new WindowPlacement { Fullscreen = true });
+
+        var message = JsonNode.Parse(sent.Single())!;
+        message["type"]!.GetValue<string>().Should().Be("window.placementChanged");
+        message["payload"]!["fullscreen"]!.GetValue<bool>().Should().BeTrue();
+    }
+
     public void Dispose()
     {
         app.Dispose();
