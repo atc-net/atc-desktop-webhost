@@ -9,19 +9,19 @@ internal static class LanguageResolver
     /// </summary>
     /// <param name="supported">The app's languages; the first is the fallback.</param>
     /// <param name="setting">The <c>language</c> setting, or <see langword="null"/>.</param>
-    /// <param name="uiCulture">The OS UI culture.</param>
+    /// <param name="osLanguage">The OS UI language, e.g. <c>da-DK</c>, or <see langword="null"/>.</param>
     /// <returns>One of <paramref name="supported"/>.</returns>
     public static string Resolve(
         IReadOnlyList<string> supported,
         string? setting,
-        CultureInfo uiCulture)
+        string? osLanguage)
     {
         if (supported.Count == 0)
         {
             return "en";
         }
 
-        return Match(supported, setting) ?? Match(supported, uiCulture.Name) ?? supported[0];
+        return Match(supported, setting) ?? Match(supported, osLanguage) ?? supported[0];
     }
 
     private static string? Match(

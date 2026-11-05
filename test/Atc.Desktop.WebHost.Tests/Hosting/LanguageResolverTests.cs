@@ -12,11 +12,12 @@ public sealed class LanguageResolverTests
     [InlineData(null, "fr-FR", "en")]
     [InlineData("sv-SE", "de-CH", "de-DE")]
     [InlineData("", "en-GB", "en")]
+    [InlineData(null, null, "en")]
     public void Resolve_SettingThenOsThenFirst(
         string? setting,
-        string osLanguage,
+        string? osLanguage,
         string expected)
-        => LanguageResolver.Resolve(Supported, setting, new System.Globalization.CultureInfo(osLanguage)).Should().Be(expected);
+        => LanguageResolver.Resolve(Supported, setting, osLanguage).Should().Be(expected);
 
     [Fact]
     public void HostTexts_EveryLanguageHasEveryText()

@@ -39,7 +39,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         Options = options;
         Paths = HostPaths.Resolve(options.Vendor, options.AppId);
         Settings = new SettingsStore(Paths.ConfigFolder);
-        Language = LanguageResolver.Resolve(options.Languages, Settings.GetString("language"), CultureInfo.CurrentUICulture);
+        Language = LanguageResolver.Resolve(options.Languages, Settings.GetString("language"), OsLanguage.Get());
         fileWatch = new FileWatchService(OnFileChanged, options.FileChangeDebounce);
         pathScope = new PathScope(options.RestrictFileAccess);
         _ = new MountTable(options.Mounts); // Bad mount names fail here, not when the window opens.

@@ -5,6 +5,8 @@ global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
 global using System.IO.Pipes;
 global using System.Reflection;
+global using System.Runtime.InteropServices;
+global using System.Runtime.Versioning;
 global using System.Text;
 global using System.Text.Json;
 global using System.Text.Json.Nodes;
