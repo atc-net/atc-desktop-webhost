@@ -18,6 +18,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
 {
     private readonly CancellationTokenSource lifetime = new();
     private readonly FileWatchService fileWatch;
+    private readonly FolderWatchService folderWatch;
     private readonly PathScope pathScope;
     private readonly CloseGuard closeGuard = new(TimeProvider.System);
     private WebHostCommandLine commandLine = WebHostCommandLine.Parse([]);
@@ -41,6 +42,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         Settings = new SettingsStore(Paths.ConfigFolder);
         Language = LanguageResolver.Resolve(options.Languages, Settings.GetString("language"), OsLanguage.Get());
         fileWatch = new FileWatchService(OnFileChanged, options.FileChangeDebounce);
+        folderWatch = new FolderWatchService(OnFolderChanged, options.FileChangeDebounce);
         pathScope = new PathScope(options.RestrictFileAccess);
         _ = new MountTable(options.Mounts); // Bad mount names fail here, not when the window opens.
         RegisterBuiltInHandlers();
@@ -87,6 +89,14 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     /// <param name="filePath">A file the user chose.</param>
     public void GrantFileAccess(string filePath)
         => pathScope.Grant(filePath);
+
+    /// <summary>
+    /// Lets the page list, read and watch this folder and everything below it. The host already does this for a
+    /// folder picked in the Open Folder dialog; call it when the app gets a folder another way.
+    /// </summary>
+    /// <param name="folderPath">A folder the user chose.</param>
+    public void GrantFolderAccess(string folderPath)
+        => pathScope.GrantFolder(folderPath);
 
     /// <summary>
     /// Checks whether the page may use a file (read, watch). Apps use it before doing something with a path the page
@@ -191,6 +201,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
 
         lifetime.Cancel();
         fileWatch.Dispose();
+        folderWatch.Dispose();
         singleInstance?.Dispose();
         lifetime.Dispose();
     }
@@ -409,6 +420,15 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
             "file.changed",
             new BuiltInMessages.FileChangedEvent(path, kind),
             BridgeJsonContext.Default.FileChangedEvent);
+
+    private void OnFolderChanged(
+        string folder,
+        IReadOnlyList<string> paths,
+        bool rescan)
+        => Bridge.Emit(
+            "folder.changed",
+            new BuiltInMessages.FolderChangedEvent(folder, paths, rescan),
+            BridgeJsonContext.Default.FolderChangedEvent);
 
     private async Task CloseAfterAsync(TimeSpan delay)
     {

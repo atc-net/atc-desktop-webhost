@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Atc.Desktop.WebHost\Atc.Desktop.WebHost.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Atc.Desktop.WebHost.Tests" />
+  </ItemGroup>
+
 </Project>

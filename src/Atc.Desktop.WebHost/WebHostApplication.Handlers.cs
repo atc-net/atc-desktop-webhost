@@ -10,6 +10,7 @@ public sealed partial class WebHostApplication
         RegisterWindowHandlers();
         RegisterDialogHandlers();
         RegisterFileHandlers();
+        RegisterFolderHandlers();
     }
 
     private void RegisterHostHandlers()
@@ -163,6 +164,20 @@ public sealed partial class WebHostApplication
             return JsonPayload.From(new BuiltInMessages.FileDialogResult(path), BridgeJsonContext.Default.FileDialogResult);
         });
 
+        Bridge.Handle("dialog.openFolder", async (request, _) =>
+        {
+            await Task.Yield();
+            var path = await RequireWindow()
+                .ShowOpenFolderDialogAsync(ToDialogOptions(request, []))
+                .ConfigureAwait(true);
+            if (path is not null)
+            {
+                pathScope.GrantFolder(path);
+            }
+
+            return JsonPayload.From(new BuiltInMessages.FileDialogResult(path), BridgeJsonContext.Default.FileDialogResult);
+        });
+
         Bridge.Handle("dialog.saveFile", async (request, _) =>
         {
             await Task.Yield();
@@ -196,6 +211,34 @@ public sealed partial class WebHostApplication
         Bridge.Handle("file.unwatch", (request, _) =>
         {
             fileWatch.Unwatch(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path);
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+    }
+
+    private void RegisterFolderHandlers()
+    {
+        Bridge.Handle("folder.list", async (request, cancellationToken) =>
+        {
+            var payload = request.Deserialize(BridgeJsonContext.Default.FolderListRequest);
+            var folder = pathScope.Require(payload.Path);
+            var maxFiles = payload.MaxFiles is > 0 and var max ? Math.Min(max, FolderLister.DefaultMaxFiles) : FolderLister.DefaultMaxFiles;
+            var result = await Task.Run(
+                    () => FolderLister.List(folder, payload.Pattern, payload.Recursive ?? false, maxFiles, cancellationToken),
+                    cancellationToken)
+                .ConfigureAwait(true);
+            return JsonPayload.From(result, BridgeJsonContext.Default.FolderListResult);
+        });
+
+        Bridge.Handle("folder.watch", (request, _) =>
+        {
+            var payload = request.Deserialize(BridgeJsonContext.Default.FolderWatchRequest);
+            folderWatch.Watch(pathScope.Require(payload.Path), payload.Recursive ?? false);
+            return ValueTask.FromResult(JsonPayload.Null);
+        });
+
+        Bridge.Handle("folder.unwatch", (request, _) =>
+        {
+            folderWatch.Unwatch(request.Deserialize(BridgeJsonContext.Default.PathRequest).Path);
             return ValueTask.FromResult(JsonPayload.Null);
         });
     }

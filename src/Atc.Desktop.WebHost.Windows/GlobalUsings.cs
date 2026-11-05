@@ -2,6 +2,7 @@ global using System.Collections.Concurrent;
 global using System.Drawing;
 global using System.Runtime.ExceptionServices;
 global using System.Runtime.InteropServices;
+global using System.Runtime.InteropServices.Marshalling;
 global using System.Runtime.Versioning;
 global using System.Text;
 global using Atc.Desktop.WebHost.Frontend;

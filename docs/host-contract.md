@@ -102,15 +102,19 @@ All messages are JSON text.
 | `window.closeAck` | – | `null`. Sent by the host script when `window.closeRequested` arrives; pages don't send it |
 | `dialog.openFile` | `{ title?, defaultPath?, filters?: [{ name, patterns }] }` | `{ path }`, `path` is `null` when cancelled |
 | `dialog.saveFile` | Same as `dialog.openFile` | `{ path }` |
+| `dialog.openFolder` | `{ title?, defaultPath? }` | `{ path }`, `path` is `null` when cancelled. The folder and everything below it become usable by the page |
 | `document.load` | `{ path }` | The app's document, or `{ path, error }` if it couldn't be read |
 | `file.watch` / `file.unwatch` | `{ path }` | `null` |
+| `folder.list` | `{ path, pattern?, recursive?, maxFiles? }` | `{ files: [{ path, relativePath, size, modified }], truncated }`. `pattern` is a file-name pattern such as `*.md` (no folders), matched without regard to case; `relativePath` uses `/`; `modified` is UTC. Sorted by `relativePath`. Skips names starting with a dot (such as `.git`) and what's below them, hidden and system files, and links. At most `maxFiles` files (default and highest 10,000); `truncated` says the list was cut |
+| `folder.watch` | `{ path, recursive? }` | `null`. Reports changes with `folder.changed`. Watching the same folder again only widens it to subfolders |
+| `folder.unwatch` | `{ path }` | `null` |
 | `shell.openExternal` | `{ url }` (http, https, mailto) | `null` |
 
 ### Which files the page may use
 
-`document.load` and `file.watch` only accept files in the folder of a file the user chose, or below it. The user chooses a file by passing it on the command line, opening it with a second launch, or picking it in the Open or Save dialog. Anything else is refused with `forbidden`, so a page, or script injected into it, can't read arbitrary files. Relative segments (`..`) are resolved before the check.
+`document.load`, `file.watch`, `folder.list` and `folder.watch` only accept paths in the folder of a file the user chose, or below it, or in a folder the user chose, or below it. The user chooses a file by passing it on the command line, opening it with a second launch, or picking it in the Open or Save dialog, and a folder by picking it in the Open Folder dialog. Anything else is refused with `forbidden`, so a page, or script injected into it, can't read arbitrary files. Relative segments (`..`) are resolved before the check.
 
-An app can allow more with `WebHostApplication.GrantFileAccess(path)`, for example for its own recent-files list, or turn the check off with `WebHostOptions.RestrictFileAccess = false` (trusted pages only).
+An app can allow more with `WebHostApplication.GrantFileAccess(filePath)` and `GrantFolderAccess(folderPath)`, for example for its own recent-files list, or turn the check off with `WebHostOptions.RestrictFileAccess = false` (trusted pages only).
 
 ### Built-in events
 
@@ -119,6 +123,7 @@ An app can allow more with `WebHostApplication.GrantFileAccess(path)`, for examp
 | `settings.changed` | The merged settings | After `settings.set` |
 | `document.opened` | The app's document | A second launch handed over a file |
 | `file.changed` | `{ path, kind: "changed" \| "deleted" }` | A watched file changed. An atomic save (write to a temp file, rename over) is reported as `changed` |
+| `folder.changed` | `{ folder, paths, rescan }` | Something in a watched folder was added, changed, removed or renamed. Sent once things are quiet. `paths` are hints (deleting or renaming a subfolder lists only the subfolder), so list the folder again. `rescan` is `true` when changes were lost (too many at once, or the OS ran out of watches) or more than 200 paths changed. Changes below names starting with a dot are left out |
 | `window.closeRequested` | `null` | The user tried to close the window while the close guard is on |
 | `window.placementChanged` | `{ monitor?, fullscreen, showInTaskbar }` | The window went into or out of fullscreen (F11, a video, the app) or moved to another display |
 
@@ -188,6 +193,7 @@ Apps add their own requests and events with `Bridge.Handle` and `Bridge.Emit`. U
 | `cancelled` | The page cancelled the request |
 | `forbidden` | The file is outside the folders the user opened (see "Which files the page may use") |
 | `not_ready` | The window isn't created yet |
+| `not_found` | The folder doesn't exist (`folder.list`, `folder.watch`) |
 | `not_supported` | The app doesn't support this (for example `document.load` without a `LoadDocument`) |
 | `handler_error` | The handler threw an unexpected exception |
 

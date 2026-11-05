@@ -1,6 +1,6 @@
 // In-page self-test: checks the host contract (docs/host-contract.md) through the real window, webview and bridge.
 // Run from the Self-test tab, or with --selftest: then the host writes a report and the app exits with 1 on a failure.
-// Left out because they need a person: the Open/Save dialogs, print, the find bar, opening a browser, keys, and a
+// Left out because they need a person: the Open, Save and Open Folder dialogs, print, the find bar, opening a browser, keys, and a
 // user's close (test/EndToEnd/devtools-checks.mjs covers drops and closes on Windows).
 "use strict";
 
@@ -262,6 +262,51 @@ window.SelfTest = (() => {
 
   test("file.watch outside: forbidden", async () => {
     equal(await errorCode(host.request("file.watch", { path: files.outsideFile })), "forbidden", "code");
+  });
+
+  // --- Folders ---------------------------------------------------------------------------------------------------
+
+  const listed = (result) => result.files.map((f) => f.relativePath);
+
+  test("folder.list: *.md with subfolders, any case, no dot folders", async () => {
+    const result = await host.request("folder.list", { path: files.wikiFolder, pattern: "*.md", recursive: true });
+    equal(listed(result), ["Home.md", "Sub/Page.MD"], "files");
+    equal(result.truncated, false, "truncated");
+    const home = result.files[0];
+    assert(samePath(home.path, `${files.wikiFolder}${isWindows ? "\\" : "/"}Home.md`), `path ${home.path}`);
+    assert(home.size > 0 && !Number.isNaN(Date.parse(home.modified)), `size ${home.size}, modified ${home.modified}`);
+  });
+
+  test("folder.list: one level, and a cut list", async () => {
+    equal(listed(await host.request("folder.list", { path: files.wikiFolder, pattern: "*.md" })), ["Home.md"], "one level");
+    const cut = await host.request("folder.list", { path: files.wikiFolder, recursive: true, maxFiles: 1 });
+    equal([cut.files.length, cut.truncated], [1, true], "maxFiles 1");
+  });
+
+  test("folder.list errors: forbidden, bad_request, not_found", async () => {
+    const parent = files.wikiFolder.replace(/[\\/][^\\/]+$/, "");
+    const sep = isWindows ? "\\" : "/";
+    equal(await errorCode(host.request("folder.list", { path: parent })), "forbidden", "parent folder");
+    equal(await errorCode(host.request("folder.list", { path: `${files.wikiFolder}${sep}..` })), "forbidden", "path with ..");
+    equal(await errorCode(host.request("folder.list", { path: files.wikiFolder, pattern: "../*.md" })), "bad_request", "pattern with ..");
+    equal(await errorCode(host.request("folder.list", { path: `${files.wikiFolder}${sep}missing` })), "not_found", "missing folder");
+  });
+
+  test("folder.watch reports a new file in a subfolder", async () => {
+    await host.request("folder.watch", { path: files.wikiFolder, recursive: true });
+    try {
+      const changed = nextEvent("folder.changed", 5000, (c) => samePath(c.folder, files.wikiFolder));
+      const added = await host.request("selftest.addPage");
+      const event = await changed;
+      assert(event.paths.some((p) => samePath(p, added)), `paths ${JSON.stringify(event.paths)}`);
+    } finally {
+      await host.request("folder.unwatch", { path: files.wikiFolder });
+    }
+  });
+
+  test("folder.watch outside: forbidden", async () => {
+    const parent = files.wikiFolder.replace(/[\\/][^\\/]+$/, "");
+    equal(await errorCode(host.request("folder.watch", { path: parent, recursive: true })), "forbidden", "code");
   });
 
   test("file.paths without files is empty", async () => {

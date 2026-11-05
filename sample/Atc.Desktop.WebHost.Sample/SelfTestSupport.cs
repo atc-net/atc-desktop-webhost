@@ -12,6 +12,8 @@ public sealed class SelfTestSupport : IDisposable
     private readonly Lock gate = new();
     private string? folder;
     private string? outsideFile;
+    private string? wikiFolder;
+    private int addedPages;
     private bool reported;
 
     /// <summary>Initializes a new instance of the <see cref="SelfTestSupport"/> class and adds its requests.</summary>
@@ -53,6 +55,11 @@ public sealed class SelfTestSupport : IDisposable
             {
                 File.Delete(outsideFile);
             }
+
+            if (wikiFolder is not null)
+            {
+                Directory.Delete(wikiFolder, recursive: true);
+            }
         }
         catch (IOException)
         {
@@ -90,6 +97,15 @@ public sealed class SelfTestSupport : IDisposable
             return JsonPayload.Null;
         });
 
+        // Adds a page to the wiki folder's subfolder, so the page can wait for folder.changed. Returns its path.
+        app.Bridge.Handle("selftest.addPage", async (_, cancellationToken) =>
+        {
+            var files = CreateFiles();
+            var path = Path.Combine(files.WikiFolder, "Sub", $"New-{Interlocked.Increment(ref addedPages)}.md");
+            await File.WriteAllTextAsync(path, "# New\n", cancellationToken).ConfigureAwait(false);
+            return JsonPayload.From(path, SampleJsonContext.Default.String);
+        });
+
         app.Bridge.Handle("selftest.done", (request, _) =>
         {
             if (isRun)
@@ -118,13 +134,24 @@ public sealed class SelfTestSupport : IDisposable
 
                 outsideFile = Path.Combine(root, $"{name}-outside.txt");
                 File.WriteAllText(outsideFile, "outside the allowed folder\n");
+
+                wikiFolder = Path.Combine(root, $"{name}-wiki");
+                foreach (var page in (string[])["Home.md", "Sub/Page.MD", "notes.txt", ".git/config.md"])
+                {
+                    var path = Path.Combine(wikiFolder, page);
+                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                    File.WriteAllText(path, $"# {page}\n");
+                }
+
+                app.GrantFolderAccess(wikiFolder);
             }
 
             var outsideName = Path.GetFileName(outsideFile)!;
             return new SelfTestFiles(
                 Path.Combine(folder, "watched.txt"),
                 outsideFile!,
-                Path.Combine(folder, "..", outsideName));
+                Path.Combine(folder, "..", outsideName),
+                wikiFolder!);
         }
     }
 

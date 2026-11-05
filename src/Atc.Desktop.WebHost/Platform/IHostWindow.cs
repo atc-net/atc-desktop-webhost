@@ -25,6 +25,11 @@ public interface IHostWindow
     /// <returns>The picked path, or <see langword="null"/> when cancelled.</returns>
     Task<string?> ShowOpenFileDialogAsync(FileDialogOptions options);
 
+    /// <summary>Shows the native Open Folder dialog.</summary>
+    /// <param name="options">The title and the folder to start in; filters are ignored.</param>
+    /// <returns>The chosen folder, or <see langword="null"/> when cancelled.</returns>
+    Task<string?> ShowOpenFolderDialogAsync(FileDialogOptions options);
+
     /// <summary>Shows the native Save dialog.</summary>
     /// <param name="options">Title, suggested path and filters.</param>
     /// <returns>The picked path, or <see langword="null"/> when cancelled.</returns>

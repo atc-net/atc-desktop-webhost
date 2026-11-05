@@ -38,6 +38,31 @@ internal static class BuiltInMessages
         string Path,
         string Kind);
 
+    internal sealed record FolderListRequest(
+        string Path,
+        string? Pattern,
+        bool? Recursive,
+        int? MaxFiles);
+
+    internal sealed record FolderEntry(
+        string Path,
+        string RelativePath,
+        long Size,
+        DateTime Modified);
+
+    internal sealed record FolderListResult(
+        IReadOnlyList<FolderEntry> Files,
+        bool Truncated);
+
+    internal sealed record FolderWatchRequest(
+        string Path,
+        bool? Recursive);
+
+    internal sealed record FolderChangedEvent(
+        string Folder,
+        IReadOnlyList<string> Paths,
+        bool Rescan);
+
     /// <summary>Page timings as Unix epoch milliseconds (<c>performance.timeOrigin + performance.now()</c>).</summary>
     internal sealed record FirstPaintRequest(Dictionary<string, double>? Marks);
 

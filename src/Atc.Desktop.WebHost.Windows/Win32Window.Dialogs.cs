@@ -1,6 +1,9 @@
 namespace Atc.Desktop.WebHost.Windows;
 
-/// <content>Native Open and Save dialogs (comdlg32; Windows shows the modern Explorer dialog).</content>
+/// <content>
+/// Native Open and Save dialogs (comdlg32; Windows shows the modern Explorer dialog), and the Open Folder dialog
+/// (the common item dialog, which comdlg32 has no folder mode for).
+/// </content>
 internal sealed partial class Win32Window
 {
     private const int MaxPath = 32_768;
@@ -10,6 +13,9 @@ internal sealed partial class Win32Window
 
     public Task<string?> ShowSaveFileDialogAsync(FileDialogOptions options)
         => Task.FromResult(ShowFileDialog(options, save: true));
+
+    public Task<string?> ShowOpenFolderDialogAsync(FileDialogOptions options)
+        => Task.FromResult(ShowFolderDialog(options));
 
     /// <summary>Builds the comdlg32 filter: "Name\0*.a;*.b\0...\0\0".</summary>
     /// <param name="filters">The filters; "All files" is added last.</param>
@@ -24,6 +30,47 @@ internal sealed partial class Win32Window
         }
 
         return sb.Append('\0').ToString();
+    }
+
+    private string? ShowFolderDialog(FileDialogOptions dialogOptions)
+    {
+        ArgumentNullException.ThrowIfNull(dialogOptions);
+
+        Marshal.ThrowExceptionForHR(NativeMethods.CoCreateInstance(
+            NativeMethods.FileOpenDialogClassId,
+            outer: 0,
+            NativeMethods.ClsctxInprocServer,
+            typeof(IFileDialog).GUID,
+            out var dialog));
+        dialog.SetOptions(dialog.GetOptions() | NativeMethods.FosPickFolders | NativeMethods.FosForceFileSystem |
+                          NativeMethods.FosPathMustExist | NativeMethods.FosNoChangeDir);
+        if (dialogOptions.Title is { Length: > 0 } title)
+        {
+            dialog.SetTitle(title);
+        }
+
+        if (dialogOptions.DefaultPath is { Length: > 0 } defaultPath && Directory.Exists(defaultPath) &&
+            NativeMethods.SHCreateItemFromParsingName(defaultPath, 0, typeof(IShellItem).GUID, out var folder) == 0)
+        {
+            dialog.SetFolder(folder);
+        }
+
+        var result = dialog.Show(hwnd);
+        if (result == NativeMethods.ErrorCancelled)
+        {
+            return null;
+        }
+
+        Marshal.ThrowExceptionForHR(result);
+        var name = dialog.GetResult().GetDisplayName(NativeMethods.SigdnFileSysPath);
+        try
+        {
+            return Marshal.PtrToStringUni(name);
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(name);
+        }
     }
 
     private unsafe string? ShowFileDialog(
