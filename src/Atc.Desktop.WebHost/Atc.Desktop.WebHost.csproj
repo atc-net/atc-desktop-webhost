@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- Needed by the source-generated OS calls (LibraryImport); the code itself has no unsafe blocks. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Atc.Desktop.WebHost</PackageId>
     <Description>Fast desktop host for TypeScript web frontends: window + webview, typed message bridge, startup pipeline, single instance, settings, file watching and startup benchmarks.</Description>
     <PackageTags>desktop;webview;webview2;webkitgtk;host</PackageTags>
