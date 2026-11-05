@@ -1,0 +1,205 @@
+// The page's texts in English, Danish and German. The host picks the language (atcHost.boot.language: the
+// "language" setting, else the OS language, else English); the page switches at once when the setting changes.
+"use strict";
+
+window.SampleTexts = (() => {
+  const texts = {
+    en: {
+      "app.open": "Open…",
+      "app.openTitle": "Open a file (Ctrl+O)",
+      "app.theme": "Theme",
+      "app.noFile": "No file",
+      "language": "Language",
+      "tab.document": "Document",
+      "tab.window": "Window",
+      "tab.files": "Files and frames",
+      "tab.bridge": "Bridge",
+      "tab.selftest": "Self-test",
+      "welcome.text": "Open a text file, drop one on the window, or start the app with a file path. Each tab shows one part of the host.",
+      "status.starting": "Starting…",
+      "doc.stats": "{lines} lines · {kb} KB · read in {ms} ms",
+      "doc.error": "Could not open {path}: {error}",
+      "startup.started": "Started in {ms} ms",
+      "window.displays": "Displays",
+      "window.display": "Display {n}",
+      "window.primary": "primary",
+      "window.moveTo": "Move here",
+      "window.placement": "Placement",
+      "window.fullscreen": "Fullscreen (F11)",
+      "window.taskbar": "Show in taskbar",
+      "window.linuxPlacement": "Linux: only fullscreen on a display (Wayland can't place a normal window).",
+      "window.pageTools": "Find and print",
+      "window.find": "Find (Ctrl+F)",
+      "window.print": "Print (Ctrl+P)",
+      "window.guardTitle": "Close guard",
+      "window.guard": "Pretend there are unsaved changes",
+      "window.guardHint": "Then close the window (×, Alt+F4 or Ctrl+F4): the page asks first.",
+      "window.keysTitle": "Keys and menu",
+      "window.keys": "F11 fullscreen, Ctrl+F find, Ctrl+P print, Ctrl+F4 close. Right-click selected text to copy it.",
+      "window.events": "Placement events",
+      "window.noEvents": "None yet: press F11 or use the buttons above.",
+      "close.title": "Unsaved changes",
+      "close.text": "Close the window anyway?",
+      "close.close": "Close",
+      "close.cancel": "Cancel",
+      "files.dropTitle": "Dropped files",
+      "files.drop": "Drop a file on the window to open it: the host gives the page its full path.",
+      "files.mountTitle": "A mounted folder",
+      "files.mount": "Served from another origin ({origin}), read fresh on every request.",
+      "files.frameTitle": "An iframe from the mount",
+      "files.frame": "It gets no atcHost and talks to this page with postMessage.",
+      "files.frameSays": "The frame says: {text}",
+      "bridge.title": "Bridge benchmarks",
+      "bridge.hint": "Round trips with growing payloads, then a burst of events from the host.",
+      "bridge.run": "Run",
+      "bridge.running": "Running…",
+      "bridge.test": "Test",
+      "bridge.events": "Events row: total ms, then ms per event.",
+      "self.title": "Self-test",
+      "self.hint": "Checks the host's requests and events in this window. Dialogs, print and the find bar are left out: they need a person.",
+      "self.run": "Run self-test",
+      "self.summary": "{passed} passed, {failed} failed, {skipped} skipped",
+    },
+    da: {
+      "app.open": "Åbn…",
+      "app.openTitle": "Åbn en fil (Ctrl+O)",
+      "app.theme": "Tema",
+      "app.noFile": "Ingen fil",
+      "language": "Sprog",
+      "tab.document": "Dokument",
+      "tab.window": "Vindue",
+      "tab.files": "Filer og frames",
+      "tab.bridge": "Bridge",
+      "tab.selftest": "Selvtest",
+      "welcome.text": "Åbn en tekstfil, træk en ind i vinduet, eller start appen med en filsti. Hver fane viser en del af værten.",
+      "status.starting": "Starter…",
+      "doc.stats": "{lines} linjer · {kb} KB · læst på {ms} ms",
+      "doc.error": "Kunne ikke åbne {path}: {error}",
+      "startup.started": "Startet på {ms} ms",
+      "window.displays": "Skærme",
+      "window.display": "Skærm {n}",
+      "window.primary": "primær",
+      "window.moveTo": "Flyt hertil",
+      "window.placement": "Placering",
+      "window.fullscreen": "Fuld skærm (F11)",
+      "window.taskbar": "Vis på proceslinjen",
+      "window.linuxPlacement": "Linux: kun fuld skærm på en skærm (Wayland kan ikke placere et normalt vindue).",
+      "window.pageTools": "Søg og udskriv",
+      "window.find": "Søg (Ctrl+F)",
+      "window.print": "Udskriv (Ctrl+P)",
+      "window.guardTitle": "Lukkevagt",
+      "window.guard": "Lad som om der er ugemte ændringer",
+      "window.guardHint": "Luk så vinduet (×, Alt+F4 eller Ctrl+F4): siden spørger først.",
+      "window.keysTitle": "Taster og menu",
+      "window.keys": "F11 fuld skærm, Ctrl+F søg, Ctrl+P udskriv, Ctrl+F4 luk. Højreklik på markeret tekst for at kopiere den.",
+      "window.events": "Placeringshændelser",
+      "window.noEvents": "Ingen endnu: tryk F11 eller brug knapperne ovenfor.",
+      "close.title": "Ugemte ændringer",
+      "close.text": "Luk vinduet alligevel?",
+      "close.close": "Luk",
+      "close.cancel": "Annuller",
+      "files.dropTitle": "Filer trukket ind",
+      "files.drop": "Træk en fil ind i vinduet for at åbne den: værten giver siden dens fulde sti.",
+      "files.mountTitle": "En monteret mappe",
+      "files.mount": "Leveres fra en anden origin ({origin}) og læses på ny ved hver forespørgsel.",
+      "files.frameTitle": "En iframe fra monteringen",
+      "files.frame": "Den får ingen atcHost og taler med denne side via postMessage.",
+      "files.frameSays": "Rammen siger: {text}",
+      "bridge.title": "Bridge-målinger",
+      "bridge.hint": "Rundture med stigende datamængde, derefter en byge af hændelser fra værten.",
+      "bridge.run": "Kør",
+      "bridge.running": "Kører…",
+      "bridge.test": "Test",
+      "bridge.events": "Hændelsesrækken: ms i alt, derefter ms pr. hændelse.",
+      "self.title": "Selvtest",
+      "self.hint": "Tjekker værtens forespørgsler og hændelser i dette vindue. Dialoger, udskrift og søgelinjen er udeladt: de kræver en person.",
+      "self.run": "Kør selvtest",
+      "self.summary": "{passed} bestået, {failed} fejlet, {skipped} sprunget over",
+    },
+    de: {
+      "app.open": "Öffnen…",
+      "app.openTitle": "Eine Datei öffnen (Strg+O)",
+      "app.theme": "Design",
+      "app.noFile": "Keine Datei",
+      "language": "Sprache",
+      "tab.document": "Dokument",
+      "tab.window": "Fenster",
+      "tab.files": "Dateien und Frames",
+      "tab.bridge": "Bridge",
+      "tab.selftest": "Selbsttest",
+      "welcome.text": "Öffnen Sie eine Textdatei, ziehen Sie eine ins Fenster oder starten Sie die App mit einem Dateipfad. Jeder Reiter zeigt einen Teil des Hosts.",
+      "status.starting": "Startet…",
+      "doc.stats": "{lines} Zeilen · {kb} KB · gelesen in {ms} ms",
+      "doc.error": "{path} konnte nicht geöffnet werden: {error}",
+      "startup.started": "Gestartet in {ms} ms",
+      "window.displays": "Bildschirme",
+      "window.display": "Bildschirm {n}",
+      "window.primary": "primär",
+      "window.moveTo": "Hierher verschieben",
+      "window.placement": "Platzierung",
+      "window.fullscreen": "Vollbild (F11)",
+      "window.taskbar": "In der Taskleiste anzeigen",
+      "window.linuxPlacement": "Linux: nur Vollbild auf einem Bildschirm (Wayland kann ein normales Fenster nicht platzieren).",
+      "window.pageTools": "Suchen und drucken",
+      "window.find": "Suchen (Strg+F)",
+      "window.print": "Drucken (Strg+P)",
+      "window.guardTitle": "Schließschutz",
+      "window.guard": "So tun, als gäbe es ungespeicherte Änderungen",
+      "window.guardHint": "Schließen Sie dann das Fenster (×, Alt+F4 oder Strg+F4): die Seite fragt zuerst.",
+      "window.keysTitle": "Tasten und Menü",
+      "window.keys": "F11 Vollbild, Strg+F suchen, Strg+P drucken, Strg+F4 schließen. Markierten Text mit Rechtsklick kopieren.",
+      "window.events": "Platzierungsereignisse",
+      "window.noEvents": "Noch keine: drücken Sie F11 oder nutzen Sie die Schaltflächen oben.",
+      "close.title": "Ungespeicherte Änderungen",
+      "close.text": "Fenster trotzdem schließen?",
+      "close.close": "Schließen",
+      "close.cancel": "Abbrechen",
+      "files.dropTitle": "Abgelegte Dateien",
+      "files.drop": "Ziehen Sie eine Datei ins Fenster, um sie zu öffnen: der Host gibt der Seite den vollständigen Pfad.",
+      "files.mountTitle": "Ein eingebundener Ordner",
+      "files.mount": "Von einem anderen Origin geliefert ({origin}) und bei jeder Anfrage neu gelesen.",
+      "files.frameTitle": "Ein iframe aus dem eingebundenen Ordner",
+      "files.frame": "Er bekommt kein atcHost und spricht per postMessage mit dieser Seite.",
+      "files.frameSays": "Der Frame sagt: {text}",
+      "bridge.title": "Bridge-Messungen",
+      "bridge.hint": "Rundreisen mit wachsender Datenmenge, dann eine Ereignisflut vom Host.",
+      "bridge.run": "Starten",
+      "bridge.running": "Läuft…",
+      "bridge.test": "Test",
+      "bridge.events": "Ereigniszeile: ms gesamt, dann ms pro Ereignis.",
+      "self.title": "Selbsttest",
+      "self.hint": "Prüft die Anfragen und Ereignisse des Hosts in diesem Fenster. Dialoge, Drucken und die Suchleiste fehlen: sie brauchen einen Menschen.",
+      "self.run": "Selbsttest starten",
+      "self.summary": "{passed} bestanden, {failed} fehlgeschlagen, {skipped} übersprungen",
+    },
+  };
+
+  let language = "en";
+  const listeners = [];
+
+  /** The text for a key in the current language, with {name} placeholders filled in. */
+  function t(key, vars = {}) {
+    const text = texts[language][key] ?? texts.en[key] ?? key;
+    return text.replace(/\{(\w+)\}/g, (_, name) => String(vars[name] ?? ""));
+  }
+
+  /** Fills every element with data-i18n (text) or data-i18n-title (tooltip) below root. */
+  function apply(root = document) {
+    for (const el of root.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
+    for (const el of root.querySelectorAll("[data-i18n-title]")) el.title = t(el.dataset.i18nTitle);
+  }
+
+  /** Switches the page to a language tag such as "da-DK"; unknown tags fall back to English. */
+  function setLanguage(tag) {
+    const short = String(tag ?? "en").split("-")[0].toLowerCase();
+    language = texts[short] ? short : "en";
+    document.documentElement.lang = language;
+    apply();
+    for (const listener of listeners) listener(language);
+  }
+
+  /** Runs listener after every language switch (for texts built with placeholders). */
+  const onLanguage = (listener) => listeners.push(listener);
+
+  return { t, apply, setLanguage, onLanguage, get language() { return language; } };
+})();

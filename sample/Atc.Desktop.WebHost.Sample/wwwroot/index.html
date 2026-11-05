@@ -7,31 +7,56 @@
   <!-- atcHost exists before any page script, so the theme is set before the first paint. -->
   <script>document.documentElement.dataset.theme = window.atcHost ? atcHost.boot.theme : "light";</script>
   <link rel="stylesheet" href="app.css">
+  <script src="texts.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
   <header class="toolbar">
-    <button id="open" type="button" title="Open a file (Ctrl+O)">Open…</button>
-    <span id="title" class="title">No file</span>
+    <button id="open" type="button" data-i18n="app.open" data-i18n-title="app.openTitle">Open…</button>
+    <span id="title" class="title" data-i18n="app.noFile">No file</span>
     <span class="spacer"></span>
-    <button id="bench" type="button" title="Bridge benchmarks">Bridge bench</button>
-    <button id="theme" type="button" title="Switch theme">Theme</button>
+    <select id="language" data-i18n-title="language">
+      <option value="en">English</option>
+      <option value="da-DK">Dansk</option>
+      <option value="de-DE">Deutsch</option>
+    </select>
+    <button id="theme" type="button" data-i18n="app.theme">Theme</button>
   </header>
+  <nav id="tabs" class="tabs">
+    <button type="button" data-tab="document" class="active" data-i18n="tab.document">Document</button>
+    <button type="button" data-tab="window" data-i18n="tab.window">Window</button>
+    <button type="button" data-tab="files" data-i18n="tab.files">Files and frames</button>
+    <button type="button" data-tab="bridge" data-i18n="tab.bridge">Bridge</button>
+    <button type="button" data-tab="selftest" data-i18n="tab.selftest">Self-test</button>
+  </nav>
   <main id="main">
-    <section id="welcome" class="welcome">
-      <h1>Atc.Desktop.WebHost</h1>
-      <p>Open a text file, or start the app with a file path. Startup timings are shown below.</p>
+    <section id="tab-document" class="tab">
+      <section id="welcome" class="welcome">
+        <h1>Atc.Desktop.WebHost</h1>
+        <p data-i18n="welcome.text">Open a text file, drop one on the window, or start the app with a file path.</p>
+      </section>
+      <pre id="text" class="text" hidden></pre>
     </section>
-    <pre id="text" class="text" hidden></pre>
+    <section id="tab-window" class="tab page" hidden></section>
+    <section id="tab-files" class="tab page" hidden></section>
+    <section id="tab-bridge" class="tab page" hidden></section>
+    <section id="tab-selftest" class="tab page" hidden></section>
   </main>
-  <aside id="panel" class="panel" hidden>
-    <h2>Bridge</h2>
-    <div id="bridge-results">Running…</div>
-  </aside>
   <footer class="status">
-    <span id="status">Starting…</span>
+    <span id="status" data-i18n="status.starting">Starting…</span>
     <span class="spacer"></span>
     <span id="platform"></span>
   </footer>
+  <!-- The close guard's question. In the page, never confirm(): a native dialog pauses the page's script. -->
+  <div id="close-dialog" class="backdrop" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="close-title">
+      <h2 id="close-title" data-i18n="close.title">Unsaved changes</h2>
+      <p data-i18n="close.text">Close the window anyway?</p>
+      <div class="buttons">
+        <button id="close-cancel" type="button" data-i18n="close.cancel">Cancel</button>
+        <button id="close-confirm" type="button" class="primary" data-i18n="close.close">Close</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -6,4 +6,9 @@ namespace Atc.Desktop.WebHost.Sample;
 [JsonSerializable(typeof(BurstRequest))]
 [JsonSerializable(typeof(BurstResult))]
 [JsonSerializable(typeof(BurstItem))]
+[JsonSerializable(typeof(SampleMode))]
+[JsonSerializable(typeof(DelayRequest))]
+[JsonSerializable(typeof(DelayState))]
+[JsonSerializable(typeof(SelfTestFiles))]
+[JsonSerializable(typeof(SelfTestReport))]
 public sealed partial class SampleJsonContext : JsonSerializerContext;

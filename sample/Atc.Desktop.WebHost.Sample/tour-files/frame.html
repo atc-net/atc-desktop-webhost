@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mounted frame</title>
+  <style>
+    body { margin: 0; padding: 8px 12px; font: 13px -apple-system, "Segoe UI", "Noto Sans", sans-serif; color: #59636e; }
+  </style>
+</head>
+<body>
+  <span id="text"></span>
+  <script>
+    // A page from the files origin inside an iframe: it gets no atcHost and talks to the app's page with postMessage.
+    const hasAtcHost = typeof window.atcHost !== "undefined";
+    document.getElementById("text").textContent = `${location.origin} · atcHost: ${hasAtcHost ? "yes" : "no"}`;
+    window.parent.postMessage({ kind: "tour-frame", hasAtcHost, origin: location.origin }, "*");
+  </script>
+</body>
+</html>

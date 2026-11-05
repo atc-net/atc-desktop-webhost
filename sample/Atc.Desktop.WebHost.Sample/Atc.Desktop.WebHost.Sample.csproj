@@ -5,7 +5,7 @@
     <AssemblyName>atc-webhost-sample</AssemblyName>
     <RootNamespace>Atc.Desktop.WebHost.Sample</RootNamespace>
     <IsPackable>false</IsPackable>
-    <Description>Demo and benchmark app for Atc.Desktop.WebHost.</Description>
+    <Description>Demo, benchmark and self-test app for Atc.Desktop.WebHost.</Description>
   </PropertyGroup>
 
   <!--
@@ -31,6 +31,8 @@
     <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <!-- ... or from the assembly (switch: ui=embedded). -->
     <EmbeddedResource Include="wwwroot\**" LogicalName="wwwroot/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- Served as the "tour" mount, on the files origin. -->
+    <Content Include="tour-files\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
