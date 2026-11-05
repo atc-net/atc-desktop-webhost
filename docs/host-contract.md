@@ -108,13 +108,19 @@ All messages are JSON text.
 | `folder.list` | `{ path, pattern?, recursive?, maxFiles? }` | `{ files: [{ path, relativePath, size, modified }], truncated }`. `pattern` is a file-name pattern such as `*.md` (no folders), matched without regard to case; `relativePath` uses `/`; `modified` is UTC. Sorted by `relativePath`. Skips names starting with a dot (such as `.git`) and what's below them, hidden and system files, and links. At most `maxFiles` files (default and highest 10,000); `truncated` says the list was cut |
 | `folder.watch` | `{ path, recursive? }` | `null`. Reports changes with `folder.changed`. Watching the same folder again only widens it to subfolders |
 | `folder.unwatch` | `{ path }` | `null` |
+| `access.list` | – | `[{ path, isFolder, used }]`: the files and folders the user chose, most recent first, at most 100, also from earlier runs (see "Reopening at startup"). `used` is UTC. `[]` when `RememberFileAccess` is off |
+| `access.forget` | `{ path }` | `null`. Removes the path from the list, so the next run can't use it. It stays usable until the app closes |
 | `shell.openExternal` | `{ url }` (http, https, mailto) | `null` |
 
 ### Which files the page may use
 
 `document.load`, `file.watch`, `folder.list` and `folder.watch` only accept paths in the folder of a file the user chose, or below it, or in a folder the user chose, or below it. The user chooses a file by passing it on the command line, opening it with a second launch, or picking it in the Open or Save dialog, and a folder by picking it in the Open Folder dialog. Anything else is refused with `forbidden`, so a page, or script injected into it, can't read arbitrary files. Relative segments (`..`) are resolved before the check.
 
-An app can allow more with `WebHostApplication.GrantFileAccess(filePath)` and `GrantFolderAccess(folderPath)`, for example for its own recent-files list, or turn the check off with `WebHostOptions.RestrictFileAccess = false` (trusted pages only).
+#### Reopening at startup
+
+The host remembers every file and folder the user chose (command line, second launch, the Open, Save and Open Folder dialogs, drops) in `file-access.json` next to `settings.json`, and gives the page access to them again at the next start. So an app can reopen its last tabs: it keeps its own list of open tabs, for example in its settings, and at startup loads them with `document.load` or `folder.list`. Paths the user never chose stay `forbidden`, also when the page writes them into its settings: only the host adds to the remembered list. The page can read the list (`access.list`, for example for a recent-files menu) and remove entries (`access.forget`). Benchmark runs (`--bench`) aren't remembered. Turn it off with `WebHostOptions.RememberFileAccess = false`.
+
+An app can allow more with `WebHostApplication.GrantFileAccess(filePath)` and `GrantFolderAccess(folderPath)` (not remembered), for example for its own recent-files list, or turn the check off with `WebHostOptions.RestrictFileAccess = false` (trusted pages only).
 
 ### Built-in events
 

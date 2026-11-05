@@ -82,6 +82,13 @@ public sealed class WebHostOptions
     /// </summary>
     public bool RestrictFileAccess { get; init; } = true;
 
+    /// <summary>
+    /// Gets a value indicating whether the files and folders the user chose stay usable by the page after a restart,
+    /// so the app can reopen its last tabs. The host keeps the list itself (<c>file-access.json</c>); the page reads it
+    /// with <c>access.list</c> and removes entries with <c>access.forget</c>, but can't add to it.
+    /// </summary>
+    public bool RememberFileAccess { get; init; } = true;
+
     /// <summary>Gets a value indicating whether a second launch hands its files to the running window.</summary>
     public bool SingleInstance { get; init; } = true;
 

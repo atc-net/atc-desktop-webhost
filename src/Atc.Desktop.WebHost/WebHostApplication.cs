@@ -19,6 +19,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
     private readonly CancellationTokenSource lifetime = new();
     private readonly FileWatchService fileWatch;
     private readonly FolderWatchService folderWatch;
+    private readonly RememberedAccess? rememberedAccess;
     private readonly PathScope pathScope;
     private readonly CloseGuard closeGuard = new(TimeProvider.System);
     private WebHostCommandLine commandLine = WebHostCommandLine.Parse([]);
@@ -44,6 +45,15 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         fileWatch = new FileWatchService(OnFileChanged, options.FileChangeDebounce);
         folderWatch = new FolderWatchService(OnFolderChanged, options.FileChangeDebounce);
         pathScope = new PathScope(options.RestrictFileAccess);
+        if (options.RestrictFileAccess && options.RememberFileAccess)
+        {
+            rememberedAccess = new RememberedAccess(Paths.ConfigFolder);
+            foreach (var entry in rememberedAccess.GetAll())
+            {
+                GrantAccess(entry.Path, entry.IsFolder);
+            }
+        }
+
         _ = new MountTable(options.Mounts); // Bad mount names fail here, not when the window opens.
         RegisterBuiltInHandlers();
     }
@@ -129,10 +139,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
 
         Clock.Mark("run");
         var files = commandLine.Files;
-        foreach (var file in files)
-        {
-            pathScope.Grant(file);
-        }
+        GrantCommandLineFiles(files);
 
         if (Options.SingleInstance && !commandLine.IsBench && !commandLine.IsNewInstance)
         {
@@ -202,6 +209,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         lifetime.Cancel();
         fileWatch.Dispose();
         folderWatch.Dispose();
+        rememberedAccess?.Flush(TimeSpan.FromSeconds(2));
         singleInstance?.Dispose();
         lifetime.Dispose();
     }
@@ -295,7 +303,7 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         // The user dropped (or picked) these files: the page may now load and watch them, like files from the Open dialog.
         foreach (var path in filePaths)
         {
-            pathScope.Grant(path);
+            GrantChosen(path, isFolder: false);
         }
 
         Bridge.Respond(id, JsonPayload.From(filePaths, BridgeJsonContext.Default.IReadOnlyListString));
@@ -396,13 +404,29 @@ public sealed partial class WebHostApplication : IHostWindowEvents, IDisposable
         }
     }
 
+    private void GrantCommandLineFiles(IReadOnlyList<string> files)
+    {
+        foreach (var file in files)
+        {
+            // A benchmark run doesn't count as the user's choice.
+            if (commandLine.IsBench)
+            {
+                pathScope.Grant(file);
+            }
+            else
+            {
+                GrantChosen(file, isFolder: false);
+            }
+        }
+    }
+
     private void OnFilesFromSecondInstance(IReadOnlyList<string> files)
         => Post(() =>
         {
             Window?.BringToFront();
             foreach (var file in files)
             {
-                pathScope.Grant(file);
+                GrantChosen(file, isFolder: false);
                 _ = OpenFromSecondInstanceAsync(file);
             }
         });
