@@ -125,6 +125,13 @@ dotnet run --project sample/Atc.Desktop.WebHost.Sample -- --ui=embedded --devtoo
 
 CI runs all of them on Windows and Linux.
 
+## 📚 Docs
+
+| Doc | What |
+|---|---|
+| 📜 [Host contract](docs/host-contract.md) | What a page can rely on: address, `window.atcHost`, boot object, messages, built-in requests and events, error codes, versioning |
+| 🐧 [Qt6 vs WebKitGTK](docs/QT6-vs-WebKitGTK.md) | Pros and cons of the two Linux options, and why the host uses WebKitGTK for now |
+
 ## 🙏 Credits
 
 The Win32 window and the WebKitGTK wiring are modelled on the C++ in [Photino.Native](https://github.com/tryphotino/photino.native) (Apache-2.0) and written from scratch in C#; no Photino code is copied.
